@@ -215,7 +215,9 @@ pip-log.txt
 #Mr Developer
 .mr.developer.cfg
 
+########################
 # For PCBs designed using KiCad: http://www.kicad-pcb.org/
+########################
 
 # Temporary files
 *.000
@@ -225,6 +227,7 @@ pip-log.txt
 *~
 _autosave-*
 *.tmp
+*-cache.lib
 
 # Netlist files (exported from Eeschema)
 *.net
