@@ -47,10 +47,15 @@ Umfasst Ansteuerung eines LCDs (kompatibel mit HD44780 Treiber. Z.B. Qapass 1602
   P16 (K)   | GND
 */
 
+#include <LiquidCrystal.h>
+
+// LCD mit den gegebenen Pins aufsetzen
+LiquidCrystal lcd(P2_0, P2_1, P2_2, P2_3, P2_4, P2_5);
+
 void setup()
 {
-  // put your setup code here, to run once:
-  
+  // Zeilen- und Spaltenzahl des LCD festlegen
+  lcd.begin(16,2);
 }
 
 void loop()
