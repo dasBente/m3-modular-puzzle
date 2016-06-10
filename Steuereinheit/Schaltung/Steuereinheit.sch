@@ -1,0 +1,227 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:msp430
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L VCC #PWR?
+U 1 1 575B1067
+P 900 900
+F 0 "#PWR?" H 900 750 50  0001 C CNN
+F 1 "VCC" H 900 1050 50  0000 C CNN
+F 2 "" H 900 900 50  0000 C CNN
+F 3 "" H 900 900 50  0000 C CNN
+	1    900  900 
+	1    0    0    -1  
+$EndComp
+$Comp
+L MSP430G2553IPW20 U?
+U 1 1 575B12C5
+P 3600 2050
+F 0 "U?" H 2100 2650 50  0000 C CNN
+F 1 "MSP430G2553IPW20" H 4850 1500 50  0000 C CNN
+F 2 "20PW" H 2150 1500 50  0000 C CIN
+F 3 "" H 3550 2050 50  0000 C CNN
+	1    3600 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	900  900  9950 900 
+Wire Wire Line
+	3600 900  3600 1350
+$Comp
+L GND #PWR?
+U 1 1 575B1391
+P 800 3900
+F 0 "#PWR?" H 800 3650 50  0001 C CNN
+F 1 "GND" H 800 3750 50  0000 C CNN
+F 2 "" H 800 3900 50  0000 C CNN
+F 3 "" H 800 3900 50  0000 C CNN
+	1    800  3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	800  3900 10000 3900
+Wire Wire Line
+	3600 3900 3600 2700
+$Comp
+L LCD-016N002L DS?
+U 1 1 575B143D
+P 8350 2000
+F 0 "DS?" H 7550 2400 50  0000 C CNN
+F 1 "LCD-016N002L" H 9050 2400 50  0000 C CNN
+F 2 "WC1602A" H 8350 1950 50  0000 C CIN
+F 3 "" H 8350 2000 50  0000 C CNN
+	1    8350 2000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1900 1750 1600 1750
+Wire Wire Line
+	1600 1750 1600 1200
+Wire Wire Line
+	1600 1200 6400 1200
+Wire Wire Line
+	6400 1200 6400 2800
+Wire Wire Line
+	1900 1850 1500 1850
+Wire Wire Line
+	1500 1850 1500 1300
+Wire Wire Line
+	1500 1300 6300 1300
+Wire Wire Line
+	6300 1300 6300 2850
+Connection ~ 3600 900 
+Wire Wire Line
+	6400 2800 7900 2800
+Wire Wire Line
+	7900 2800 7900 2500
+Wire Wire Line
+	6300 2850 8100 2850
+Wire Wire Line
+	8100 2850 8100 2500
+Connection ~ 3600 3900
+Wire Wire Line
+	8000 2500 8000 3900
+Connection ~ 8000 3900
+Wire Wire Line
+	9100 2500 9100 3900
+Connection ~ 9100 3900
+$Comp
+L R 220
+U 1 1 575B1740
+P 9550 2050
+F 0 "220 Ohm" V 9630 2050 50  0000 C CNN
+F 1 "R" V 9550 2050 50  0000 C CNN
+F 2 "" V 9480 2050 50  0000 C CNN
+F 3 "" H 9550 2050 50  0000 C CNN
+	1    9550 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9000 2500 9000 2650
+Wire Wire Line
+	9000 2650 9550 2650
+Wire Wire Line
+	9550 2650 9550 2200
+Wire Wire Line
+	9550 1900 9550 900 
+Connection ~ 9550 900 
+$Comp
+L POT RV?
+U 1 1 575B192D
+P 6800 3450
+F 0 "RV?" H 6800 3350 50  0000 C CNN
+F 1 "POT" H 6800 3450 50  0000 C CNN
+F 2 "" H 6800 3450 50  0000 C CNN
+F 3 "" H 6800 3450 50  0000 C CNN
+	1    6800 3450
+	1    0    0    -1  
+$EndComp
+Connection ~ 7100 3900
+Wire Wire Line
+	6550 3450 5650 3450
+Wire Wire Line
+	5650 3450 5650 900 
+Connection ~ 5650 900 
+Wire Wire Line
+	7050 3450 7100 3450
+Wire Wire Line
+	7100 3450 7100 3900
+Wire Wire Line
+	6800 3300 7800 3300
+Wire Wire Line
+	7800 3300 7800 2500
+Wire Wire Line
+	7600 2500 7600 3900
+Connection ~ 7600 3900
+Wire Wire Line
+	7700 2500 7300 2500
+Wire Wire Line
+	7300 2500 7300 900 
+Connection ~ 7300 900 
+Wire Wire Line
+	1900 1950 1300 1950
+Wire Wire Line
+	1300 1950 1300 2900
+Wire Wire Line
+	1300 2900 8600 2900
+Wire Wire Line
+	8600 2900 8600 2500
+Wire Wire Line
+	1900 2050 1350 2050
+Wire Wire Line
+	1350 2050 1350 2950
+Wire Wire Line
+	1350 2950 8700 2950
+Wire Wire Line
+	8700 2950 8700 2500
+Wire Wire Line
+	1900 2150 1400 2150
+Wire Wire Line
+	1400 2150 1400 3000
+Wire Wire Line
+	1400 3000 8800 3000
+Wire Wire Line
+	8800 3000 8800 2500
+Wire Wire Line
+	1900 2250 1450 2250
+Wire Wire Line
+	1450 2250 1450 3050
+Wire Wire Line
+	1450 3050 8900 3050
+Wire Wire Line
+	8900 3050 8900 2500
+Wire Wire Line
+	8200 2500 8200 3900
+Connection ~ 8200 3900
+Wire Wire Line
+	8300 3900 8300 2500
+Connection ~ 8300 3900
+Wire Wire Line
+	8400 3900 8400 2500
+Wire Wire Line
+	8500 2500 8500 3900
+Connection ~ 8500 3900
+Connection ~ 8400 3900
+$EndSCHEMATC
