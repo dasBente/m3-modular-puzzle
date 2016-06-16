@@ -58,7 +58,8 @@ void handle_button()
 #define SERVO_MAX 180
 
 // rechnet die Eingabe von einer Potiausgabe in einen für den Servo brachbaren Wert um.
-int time_to_servo(int val) {
+inline int time_to_servo(int val) 
+{
   return map(val, POT_MIN, POT_MAX, SERVO_MIN, SERVO_MAX);
 }
 
