@@ -4,6 +4,8 @@
 
 #include <Servo.h>
 
+#define DEBUG // Debug build
+
 // Analogpin, an dem das Potentiometer angeschlossen ist
 #define POT_PIN 0
 
@@ -13,6 +15,11 @@
 // Pin, an dem der Button zum festlegen der Spielzeit angeschlossen ist
 #define BUTTON_PIN 2
 
+// Zusätzliche Variablen etc. für Debug-Zwecke
+#ifdef DEBUG
+  #define DEBUG_LED_PIN 13 // Pin für Debug LED
+#endif
+
 // Servo-Objekt für Zeiger
 Servo needle_servo;
 
@@ -20,6 +27,10 @@ void setup()
 {
   pinMode(BUTTON_PIN, INPUT);
 
+  #ifdef DEBUG
+    pinMode(DEBUG_LED_PIN, OUTPUT);
+  #endif
+  
   needle_servo.attach(SERVO_PIN);
 }
 
@@ -58,6 +69,10 @@ void loop()
 {
   handle_button();
   if (!hold) time_remaining = analogRead(POT_PIN);
+
+  #ifdef DEBUG
+    digitalWrite(DEBUG_LED_PIN, hold);
+  #endif
 
   // Stand des Servos updaten
   needle_servo.write(time_to_servo(time_remaining));
