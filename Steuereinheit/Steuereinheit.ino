@@ -42,6 +42,7 @@ void setup()
 
   #ifdef DEBUG
     pinMode(DEBUG_LED_PIN, OUTPUT);
+    Serial.begin(9800);
   #endif
   
   needle_servo.attach(SERVO_PIN);
@@ -127,5 +128,10 @@ void loop()
   
   #ifdef DEBUG
     digitalWrite(DEBUG_LED_PIN, held);
+    if (Serial.available()) 
+    {
+      Serial.print(time_remaining);
+      Serial.print("\n");
+    }
   #endif
 }
