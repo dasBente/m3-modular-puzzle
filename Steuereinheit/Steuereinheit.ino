@@ -106,23 +106,60 @@ void handle_button()
 #define SERVO_MIN 0
 #define SERVO_MAX 180
 
-// rechnet die Eingabe von einer Potiausgabe in einen für den Servo brachbaren Wert um.
+// Maximale und minimale Einstellung für die Spielzeit
+#define TIME_MIN 60
+#define TIME_MAX 300
+
+// rechnet die verbleibende Spielzeit in eine Servoeinstellung um.
 inline int time_to_servo(int val) 
 {
-  return map(val, POT_MIN, POT_MAX, SERVO_MIN, SERVO_MAX);
+  return map(val, 0, TIME_MAX, SERVO_MAX, SERVO_MIN);
+}
+
+inline int poti_to_time(int val)
+{
+  return map(val, POT_MIN, POT_MAX, TIME_MIN, TIME_MAX);
 }
 
 // Die dem Spieler noch verbleibende Spielzeit
 int time_remaining = 0;
+
+int timer = 0;
+int ms = 0;
+
+void start_timer() {
+  timer = millis(); 
+}
+
+// Verwaltet die verbleibende Zeit, zählt im Sekundentakt runter, updated Servo
+void handle_time() 
+{
+  if (timer == 0) start_timer();
+
+  ms = millis();
+  if (ms - timer > 1000) 
+  {
+    time_remaining -= (ms - timer) / 1000;
+    timer = ms; 
+  }
+
+  int dev = random(-2,2);
+  needle_servo.write(constrain(time_to_servo(time_remaining) + dev, 0, TIME_MAX));
+}
 
 void loop()
 {
   handle_button();
   switch (game_state) {
     case GS_SETUP:
-      time_remaining = analogRead(POT_PIN);
+      time_remaining = poti_to_time(analogRead(POT_PIN));
       needle_servo.write(time_to_servo(time_remaining));
       delay(15); // Notwendig?
+      break;
+    case GS_STARTUP:
+      handle_time();
+
+      if (remaining_time <= 0) game_state = GS_LOST;
       break;
   }
   
