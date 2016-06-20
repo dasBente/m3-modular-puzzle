@@ -48,19 +48,53 @@ void setup()
   game_state = GS_SETUP;
 }
 
-// gibt an, ob der Wert von remaining_time über Pot manipuliert werden kann
-bool hold = false;
+// gibt an, ob der Push-Button derzeit gedrückt ist
+bool held = false;
 
 int button_state = 0;
 
+// Wird beim herunterdrücken des Buttons ausgeführt
+void onButtonPress() {}
+
+// Wird beim loslassen des Buttons ausgeführt
+void onButtonRelease() 
+{
+  switch (game_state) {
+    case GS_SETUP: 
+      game_state = GS_HOLD;
+      break;
+    case GS_HOLD:
+      game_state = GS_STARTUP;
+      break;
+    case GS_WON:
+    case GS_LOST:
+      game_state = GS_SETUP; // TODO Logik für starten einer neuen Runde
+      break;
+  }
+}
+
+// Wird ausgeführt, wenn der Button gehalten wird
+void onButtonHold() {}
+
+// Verwaltet an den Button gebundene Logik
 void handle_button() 
 {
-  if (!hold) {
-    button_state = digitalRead(BUTTON_PIN);
-
-    if (button_state == HIGH) 
-    { 
-      hold = true; 
+  button_state = digitalRead(BUTTON_PIN);
+  
+  if (button_state == HIGH) 
+  {
+    if (!held) 
+    {
+      held = true;
+      onButtonPress();
+    } else {
+      onButtonHold();
+    }
+  } else {
+    if (held) 
+    {
+      held = false;
+      onButtonRelease();
     }
   }
 }
@@ -83,13 +117,15 @@ int time_remaining = 0;
 void loop()
 {
   handle_button();
-  if (!hold) time_remaining = analogRead(POT_PIN);
-
+  switch (game_state) {
+    case GS_SETUP:
+      time_remaining = analogRead(POT_PIN);
+      needle_servo.write(time_to_servo(time_remaining));
+      delay(15); // Notwendig?
+      break;
+  }
+  
   #ifdef DEBUG
-    digitalWrite(DEBUG_LED_PIN, hold);
+    digitalWrite(DEBUG_LED_PIN, held);
   #endif
-
-  // Stand des Servos updaten
-  needle_servo.write(time_to_servo(time_remaining));
-  delay(15);  
 }
