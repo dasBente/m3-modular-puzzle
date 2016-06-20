@@ -20,8 +20,21 @@
   #define DEBUG_LED_PIN 13 // Pin für Debug LED
 #endif
 
+// enum das den Zustand des Spiels angibt
+typedef enum {
+  GS_INIT,    // mC ist am initialisieren
+  GS_STARTUP, // neue Spielrunde wird initialisiert 
+  GS_SETUP,   // Einstellen der Spielzeit möglich  
+  GS_HOLD,    // Spielzeit ist gesetzt, warten auf Start des Spiels
+  GS_ONGOING, // Spiel läuft derzeit
+  GS_LOST,    // Spiel zuende, Spieler hat verloren
+  GS_WON      // Spiel zuende, Spieler hat gewonnen
+} GameState;
+
 // Servo-Objekt für Zeiger
 Servo needle_servo;
+
+GameState game_state = GS_INIT;
 
 void setup()
 {
@@ -32,6 +45,7 @@ void setup()
   #endif
   
   needle_servo.attach(SERVO_PIN);
+  game_state = GS_SETUP;
 }
 
 // gibt an, ob der Wert von remaining_time über Pot manipuliert werden kann
