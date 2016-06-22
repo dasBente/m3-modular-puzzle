@@ -144,9 +144,8 @@ void handle_time()
     time_remaining -= (ms - timer) / 1000;
     timer = ms; 
   }
-
-  int dev = random(-2,2);
-  needle_servo.write(constrain(time_to_servo(time_remaining) + dev, 0, TIME_MAX));
+  
+  needle_servo.write(constrain(time_to_servo(time_remaining), 0, TIME_MAX));
 }
 
 void loop()
