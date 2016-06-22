@@ -1,0 +1,50 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel} %%comment?
+\usepackage{geometry}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\geometry{a4paper, left=15mm, right=20mm, top=2cm, bottom=2cm}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+
+
+\begin{document}
+
+\section*{Controller-Module communication protocol}
+
+The controller communicates with the modules using $I^2C/TWI$. The controller is the master (without address) and the modules are the slaves (address space begins at 8 and ends at 127). Each modules must have its own unique address.
+
+\subsection*{General procedure}
+
+When the game starts, the controller requires to get the addresses of the connected modules. In order to find them, the controller begins a transmission to each of the addresses and instantly ends them. If the message is acknowledged, there is a connected module. After the required n modules the controller could stop searching.
+
+After the game started the controller will speak with every module frequently. For every used module it will send one byte, which identifies a specific command. It might be followed by additional data bytes. Then it will request one byte of data as an answer. The slave will send either an acknowledgement or the requested information. The master will know how to interpret the answered byte.
+
+\subsection*{Protocol elements}
+
+These are the command bytes, the master can send:
+
+\paragraph*{0 - reserved.}
+not used (yet).
+%debug or ping?
+
+\paragraph*{1 - game start / reset.}
+The game starts, the module should reset and initialize. The slave answers with 0 - failed or 1 - acknowledgement.
+
+\paragraph*{2 - get information about game status.}
+The module should tell if one of these events happened:
+\begin{itemize}
+\setlength{\itemsep}{0pt}
+\item 0 - nothing happened (but module is still active)
+\item 1 - the user failed once to solve the module
+\item 2 - the module was solved and does not need to be asked again
+\item 3 - internal module error (should not happen)
+\end{itemize}
+
+\paragraph*{3 - game ended.}
+The game ended, the module should not accept solutions or fails anymore. The slave answers with 0 - failed or 1 - acknowledgement.
+
+
+\end{document}
