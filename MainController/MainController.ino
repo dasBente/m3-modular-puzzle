@@ -1,39 +1,40 @@
 /*
-  Hauptprogramm der Steuereinheit
+  Mainprogramm of the controll unit
 */
 
 #include <Servo.h>
 
 #define DEBUG // Debug build
 
-// Analogpin, an dem das Potentiometer angeschlossen ist
+// Analog pin connected to the pot washer controlling the servo position
 #define POT_PIN 0
 
-// Pin, an dem der Servo angeschlossen ist.
+// Pin connected to the servo (for controlling the servo)
 #define SERVO_PIN 9
 
-// Pin, an dem der Button zum festlegen der Spielzeit angeschlossen ist
+// Pin connected to the button for controlling the game "menu"
 #define BUTTON_PIN 2
 
-// Zusätzliche Variablen etc. für Debug-Zwecke
+// Defines and variables for the sake of debugging
 #ifdef DEBUG
-  #define DEBUG_LED_PIN 13 // Pin für Debug LED
+  #define DEBUG_LED_PIN 13 // Pin connected to a (onboard) LED
 #endif
 
-// enum das den Zustand des Spiels angibt
+// Enum that keeps track of the current game state
 typedef enum {
-  GS_INIT,    // mC ist am initialisieren
-  GS_STARTUP, // neue Spielrunde wird initialisiert 
-  GS_SETUP,   // Einstellen der Spielzeit möglich  
-  GS_HOLD,    // Spielzeit ist gesetzt, warten auf Start des Spiels
-  GS_ONGOING, // Spiel läuft derzeit
-  GS_LOST,    // Spiel zuende, Spieler hat verloren
-  GS_WON      // Spiel zuende, Spieler hat gewonnen
+  GS_INIT,    // mC is beeing initialized 
+  GS_SETUP,   // allows the game master to set a time for the player to solve the game in 
+  GS_HOLD,    // state after setting the game time. Game starts on next button press
+  GS_STARTUP, // initializing a new game 
+  GS_ONGOING, // game is currently ongoing
+  GS_LOST,    // the game is over, the player has lost the game
+  GS_WON      // the game is over, the player has won the game
 } GameState;
 
-// Servo-Objekt für Zeiger
+// Servo-object for the time-indicating needle
 Servo needle_servo;
 
+// Variable containing current game state
 GameState game_state = GS_INIT;
 
 void setup()
@@ -49,15 +50,15 @@ void setup()
   game_state = GS_SETUP;
 }
 
-// gibt an, ob der Push-Button derzeit gedrückt ist
+// Is set to true if the push button on BUTTON_PIN is currently held down
 bool held = false;
 
 int button_state = 0;
 
-// Wird beim herunterdrücken des Buttons ausgeführt
+// Executed if the button was just pressed
 void onButtonPress() {}
 
-// Wird beim loslassen des Buttons ausgeführt
+// Executed if the button was just released
 void onButtonRelease() 
 {
   switch (game_state) {
@@ -69,15 +70,15 @@ void onButtonRelease()
       break;
     case GS_WON:
     case GS_LOST:
-      game_state = GS_SETUP; // TODO Logik für starten einer neuen Runde
+      game_state = GS_SETUP; // TODO Logic for starting a new round of the game?
       break;
   }
 }
 
-// Wird ausgeführt, wenn der Button gehalten wird
+// Executed if the button is currently held down
 void onButtonHold() {}
 
-// Verwaltet an den Button gebundene Logik
+// Manages logic related to button. Press-Events are handled by the functions above
 void handle_button() 
 {
   button_state = digitalRead(BUTTON_PIN);
@@ -100,28 +101,29 @@ void handle_button()
   }
 }
 
-// Konstanten für max- und min-Werte von Servo und Poti
+// Constants for the minimal and maximal values related to pot washer and servo
 #define POT_MIN   0
 #define POT_MAX   1023
 #define SERVO_MIN 0
 #define SERVO_MAX 180
 
-// Maximale und minimale Einstellung für die Spielzeit
+// Constants for maximal and minimal values the timer can be set to
 #define TIME_MIN 60
 #define TIME_MAX 300
 
-// rechnet die verbleibende Spielzeit in eine Servoeinstellung um.
+// Maps a value of game time to a value used by the servo 
 inline int time_to_servo(int val) 
 {
   return map(val, 0, TIME_MAX, SERVO_MAX, SERVO_MIN);
 }
 
+// Maps a value retrieved from the pot washer to a game time value
 inline int poti_to_time(int val)
 {
   return map(val, POT_MIN, POT_MAX, TIME_MIN, TIME_MAX);
 }
 
-// Die dem Spieler noch verbleibende Spielzeit
+// Time still remaining in the current round of the game
 int time_remaining = 0;
 
 int timer = 0;
@@ -131,7 +133,7 @@ void start_timer() {
   timer = millis(); 
 }
 
-// Verwaltet die verbleibende Zeit, zählt im Sekundentakt runter, updated Servo
+// Manages remaining time, decrements timer each second, updates servo accordingly
 void handle_time() 
 {
   if (timer == 0) start_timer();
