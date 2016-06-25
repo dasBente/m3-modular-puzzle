@@ -31,7 +31,7 @@ not used (yet).
 %debug or ping?
 
 \paragraph*{1 - game start / reset.}
-The game starts, the module should reset and initialize. The slave answers with 0 - failed or 1 - acknowledgement.
+The game starts, the module should reset and initialize. One additional byte is a random number for variance in the game. The slave answers with 0 - failed or 1 - acknowledgement.
 
 \paragraph*{2 - get information about game status.}
 The module should tell if one of these events happened:
