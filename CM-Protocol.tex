@@ -1,9 +1,6 @@
 \documentclass[a4paper, 12pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[ngerman]{babel} %%comment?
 \usepackage{geometry}
-\usepackage{amssymb}
-\usepackage{amsmath}
 
 \geometry{a4paper, left=15mm, right=20mm, top=2cm, bottom=2cm}
 \setlength{\parskip}{1em}
@@ -14,7 +11,7 @@
 
 \section*{Controller-Module communication protocol}
 
-The controller communicates with the modules using $I^2C/TWI$. The controller is the master (without address) and the modules are the slaves (address space begins at 8 and ends at 127). Each modules must have its own unique address.
+The controller communicates with the modules using $I^2C/TWI$. The controller is the master (without address) and the modules are the slaves (address space begins at 8 and ends at 127). Each module must have its own unique address.
 
 \subsection*{General procedure}
 
