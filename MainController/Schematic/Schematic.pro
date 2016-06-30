@@ -1,4 +1,4 @@
-update=10.06.2016 21:19:03
+update=15.06.2016 22:23:12
 version=1
 last_client=kicad
 [pcbnew]
@@ -59,3 +59,4 @@ LibName27=atmel
 LibName28=contrib
 LibName29=valves
 LibName30=msp430
+LibName31=servo
