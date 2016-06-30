@@ -15,6 +15,11 @@
 // Pin connected to the button for controlling the game "menu"
 #define BUTTON_PIN 2
 
+// Pin connected to indicators for tries
+#define TRY_1_LED 5
+#define TRY_2_LED 6
+#define TRY_3_LED 7
+
 // Defines and variables for the sake of debugging
 #ifdef DEBUG
   #define DEBUG_LED_PIN 13 // Pin connected to a (onboard) LED
@@ -86,13 +91,52 @@ void setup()
     Serial.begin(9800);
     Serial.write("Serial monitor initialized!");
   #endif
+
+  // Enable try LEDs
+  pinMode(TRY_1_LED, OUTPUT);
+  pinMode(TRY_2_LED, OUTPUT);
+  pinMode(TRY_3_LED, OUTPUT);
   
   needle_servo.attach(SERVO_PIN);
 
   reset_game();
 }
 
+// Sets up the maximal number of times, the player can make a mistake
+void setup_tries() 
+{
+  // Update tries according to the time currently remaining
+  if (time_remaining <= 120) 
+  {
+    tries = 0b001;
+  } else if (time_remaining <= 240) {
+    tries = 0b011;
+  } else {
+    tries = 0b111;
+  }
 
+  update_try_leds();
+}
+
+// Reduces number of tries by 1
+void lose_try() 
+{
+  tries>>1;
+  update_try_leds();
+  
+  if (tries == 0) 
+  {
+    game_state = GS_LOST;  
+  }
+}
+
+// Updates the indicator leds for tries
+void update_try_leds() 
+{
+  digitalWrite(TRY_1_LED, bitRead(tries,0));
+  digitalWrite(TRY_2_LED, bitRead(tries,1));
+  digitalWrite(TRY_3_LED, bitRead(tries,2));
+}
 
 // Executed if the button was just pressed
 void onButtonPress() {}
@@ -179,6 +223,9 @@ void loop()
     case GS_SETUP:
       time_remaining = poti_to_time(analogRead(POT_PIN));
       needle_servo.write(time_to_servo(time_remaining));
+      
+      setup_tries();
+      
       delay(15); // Notwendig?
       break;
     case GS_STARTUP:
