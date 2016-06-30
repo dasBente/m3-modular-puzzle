@@ -32,7 +32,7 @@
 
 // Enum that keeps track of the current game state
 typedef enum {
-  GS_INIT,    // mC is beeing initialized 
+  GS_RESET,   // Reinitialize game
   GS_SETUP,   // allows the game master to set a time for the player to solve the game in 
   GS_HOLD,    // state after setting the game time. Game starts on next button press
   GS_STARTUP, // initializing a new game 
@@ -45,7 +45,7 @@ typedef enum {
 Servo needle_servo;
 
 // Variable containing current game state
-GameState game_state = GS_INIT;
+GameState game_state = GS_RESET;
 
 // Is set to true if the push button on BUTTON_PIN is currently held down
 bool held = false;
@@ -61,6 +61,22 @@ int ms = 0;
 // Maximal number of mistakes before Game Over is triggered
 int tries = 0;
 
+// Resets the game to some initial state without having to reboot the mC
+void reset_game() 
+{
+  tries = 0;
+  timer = 0;
+  ms = 0;
+  time_remaining = 0;
+  
+  // Switch of indicator LED's for now
+  digitalWrite(TRY_1_LED, LOW);
+  digitalWrite(TRY_2_LED, LOW);
+  digitalWrite(TRY_3_LED, LOW);
+  
+  game_state = GS_SETUP;
+}
+
 void setup()
 {
   pinMode(BUTTON_PIN, INPUT);
@@ -71,7 +87,8 @@ void setup()
   #endif
   
   needle_servo.attach(SERVO_PIN);
-  game_state = GS_SETUP;
+
+  reset_game();
 }
 
 
@@ -90,8 +107,9 @@ void onButtonRelease()
       game_state = GS_STARTUP;
       break;
     case GS_WON:
+      game_state = GS_RESET;
     case GS_LOST:
-      game_state = GS_SETUP; // TODO Logic for starting a new round of the game?
+      game_state = GS_RESET; 
       break;
   }
 }
@@ -165,7 +183,16 @@ void loop()
     case GS_STARTUP:
       handle_time();
 
-      if (remaining_time <= 0) game_state = GS_LOST;
+      if (time_remaining <= 0) game_state = GS_LOST;
+      break;
+    case GS_LOST:
+      // Notify player of his loss
+      break;
+    case GS_WON:
+      // Notify player of his win
+      break;
+    case GS_RESET:
+      reset_game();
       break;
   }
   
