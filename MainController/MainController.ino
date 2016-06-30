@@ -84,6 +84,7 @@ void setup()
   #ifdef DEBUG
     pinMode(DEBUG_LED_PIN, OUTPUT);
     Serial.begin(9800);
+    Serial.write("Serial monitor initialized!");
   #endif
   
   needle_servo.attach(SERVO_PIN);
