@@ -20,6 +20,16 @@
   #define DEBUG_LED_PIN 13 // Pin connected to a (onboard) LED
 #endif
 
+// Constants for the minimal and maximal values related to pot washer and servo
+#define POT_MIN   0
+#define POT_MAX   1023
+#define SERVO_MIN 0
+#define SERVO_MAX 180
+
+// Constants for maximal and minimal values the timer can be set to
+#define TIME_MIN 60
+#define TIME_MAX 300
+
 // Enum that keeps track of the current game state
 typedef enum {
   GS_INIT,    // mC is beeing initialized 
@@ -37,6 +47,20 @@ Servo needle_servo;
 // Variable containing current game state
 GameState game_state = GS_INIT;
 
+// Is set to true if the push button on BUTTON_PIN is currently held down
+bool held = false;
+
+int button_state = 0;
+
+// Time still remaining in the current round of the game
+int time_remaining = 0;
+
+int timer = 0;
+int ms = 0;
+
+// Maximal number of mistakes before Game Over is triggered
+int tries = 0;
+
 void setup()
 {
   pinMode(BUTTON_PIN, INPUT);
@@ -50,10 +74,7 @@ void setup()
   game_state = GS_SETUP;
 }
 
-// Is set to true if the push button on BUTTON_PIN is currently held down
-bool held = false;
 
-int button_state = 0;
 
 // Executed if the button was just pressed
 void onButtonPress() {}
@@ -101,16 +122,6 @@ void handle_button()
   }
 }
 
-// Constants for the minimal and maximal values related to pot washer and servo
-#define POT_MIN   0
-#define POT_MAX   1023
-#define SERVO_MIN 0
-#define SERVO_MAX 180
-
-// Constants for maximal and minimal values the timer can be set to
-#define TIME_MIN 60
-#define TIME_MAX 300
-
 // Maps a value of game time to a value used by the servo 
 inline int time_to_servo(int val) 
 {
@@ -122,12 +133,6 @@ inline int poti_to_time(int val)
 {
   return map(val, POT_MIN, POT_MAX, TIME_MIN, TIME_MAX);
 }
-
-// Time still remaining in the current round of the game
-int time_remaining = 0;
-
-int timer = 0;
-int ms = 0;
 
 void start_timer() {
   timer = millis(); 
