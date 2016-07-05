@@ -39,6 +39,7 @@ The module should tell if one of these events happened:
 \item 2 - the module was solved and does not need to be asked again
 \item 3 - internal module error (should not happen)
 \end{itemize}
+If the module sends 255 (0xFF), the answer were not ready yet. The controller could wait a time and request one answer byte again.
 
 \paragraph*{3 - game ended.}
 The game ended, the module should not accept solutions or fails anymore. The slave answers with 0 - failed or 1 - acknowledgement.
