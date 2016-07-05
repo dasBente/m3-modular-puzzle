@@ -5,6 +5,8 @@
 #define PINLEDRED 4
 #define PINADC A0
 
+#define LED_BLINK_TIME 100 //100*10ms before it switches on/off
+
 byte i2cAnswer=0xFF;
 byte randomByte=0;
 byte gameState=0; //0 - stopped, 1 - running, 2 - fail (wait for request before resume), 3 - solved, x - internal error
@@ -14,10 +16,11 @@ int expectedADCvalMax=1023;
 
 void setup()
 {
+    //define pin modes
     pinMode(PINBUTTON, INPUT_PULLUP);
     pinMode(PINLEDGREEN, OUTPUT);
     pinMode(PINLEDRED, OUTPUT);
-
+    //initialize i2c interface
     Wire.begin(8);
     Wire.onReceive(receiveEvent);
     Wire.onRequest(requestEvent);
@@ -25,23 +28,70 @@ void setup()
 
 void loop()
 {
+    //led control (blinking when not solved)
+    static int ledTime=LED_BLINK_TIME;
+    static bool ledsOn=false;
+    if (ledTime==0)
+    {
+        if (gameState==0)
+        {
+            ledsOn=false;
+            digitalWrite(PINLEDGREEN,0);
+            digitalWrite(PINLEDRED,0);
+        }
+        else if (gameState==1 || gameState==2) //not solved yet
+        {
+            //switch on/off
+            ledsOn=!ledsOn;
+            if (ledsOn)
+            {
+                digitalWrite(PINLEDGREEN,1);
+                digitalWrite(PINLEDRED,1);
+            }
+            else
+            {
+                digitalWrite(PINLEDGREEN,0);
+                digitalWrite(PINLEDRED,0);
+            }
+            ledTime=LED_BLINK_TIME;
+        }
+        else if (gameState==3)
+        {
+            ledsOn=true;
+            digitalWrite(PINLEDGREEN,1);
+            digitalWrite(PINLEDRED,0);
+        }
+    }
+    else ledTime--;
+    //game
     if (gameState==1) //game is running
     {
         if (digitalRead(PINBUTTON)==0) //button pressed
         {
             int adc=analogRead(PINADC);
-            if (adc>=expectedADCvalMin && adc<=expectedADCvalMax)
+            if (adc>=expectedADCvalMin && adc<=expectedADCvalMax) //correct connection
             {
                 gameState=3;
+                //light green LED only for completion indication
+                ledsOn=true;
+                digitalWrite(PINLEDGREEN,1);
+                digitalWrite(PINLEDRED,0);
+                ledTime=0; //displays infintely long unless gamestate changes
             }
-            else
+            else //wrong connection
             {
                 gameState=2;
+                //light red LED only for two LED blink times
+                ledsOn=true;
+                digitalWrite(PINLEDGREEN,0);
+                digitalWrite(PINLEDRED,1);
+                ledTime=2*LED_BLINK_TIME;
             }
             
             while (digitalRead(PINBUTTON)==0) delay(10); //wait for button release
         }
     }
+    //delay
     delay(10);
 }
 
@@ -111,7 +161,7 @@ void receiveEvent(int numBytes)
 void requestEvent()
 {
     //if (i2cAnswer==0xFF) doSomething(); //answer not ready
-    Wire.write(i2cAnswer);
-    i2cAnswer=0xFF;
+    Wire.write(i2cAnswer); //send answer byte
+    i2cAnswer=0xFF; //set answer byte not ready
 }
 
