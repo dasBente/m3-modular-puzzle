@@ -77,12 +77,12 @@ void reset_game()
   timer = 0;
   ms = 0;
   time_remaining = 0;
-
+  
   // Switch of indicator LED's for now
   digitalWrite(TRY_1_LED, LOW);
   digitalWrite(TRY_2_LED, LOW);
   digitalWrite(TRY_3_LED, LOW);
-  
+
   game_state = GS_SETUP;
 }
 
@@ -223,6 +223,34 @@ void handle_time()
   needle_servo.write(constrain(time_to_servo(time_remaining), 0, TIME_MAX));
 }
 
+void init_modules()
+{
+  // Generate random number
+  srand(millis());
+  char random_value = rand();
+  
+  // Find all plugged in modules and initialize them with a random value
+  unsigned char i;
+  char modules_found = 0; // for indexing the modules-array
+
+  char res;
+  for (i = 8; i < 128; i++) 
+  {
+    Wire.beginTransmission(i);
+      Wire.write(1);
+      Wire.write(random_value);
+    res = Wire.endTransmission();
+
+    if (res == 0) // If ACK was received, save module address
+    {
+      modules[modules_found] = i;
+      modules_found++;
+    }
+
+    if (modules_found == 6) break;
+  }
+}
+
 void loop()
 {
   handle_button();
@@ -236,6 +264,9 @@ void loop()
       delay(15); // Notwendig?
       break;
     case GS_STARTUP:
+      init_modules();
+      game_state = GS_ONGOING;
+    case GS_ONGOING:
       handle_time();
 
       if (time_remaining <= 0) game_state = GS_LOST;
