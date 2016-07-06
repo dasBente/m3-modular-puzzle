@@ -163,5 +163,8 @@ void requestEvent()
     //if (i2cAnswer==0xFF) doSomething(); //answer not ready
     Wire.write(i2cAnswer); //send answer byte
     i2cAnswer=0xFF; //set answer byte not ready
+    
+    //resume game after fail was noticed
+    if (gameState==2) gameState=1;
 }
 
