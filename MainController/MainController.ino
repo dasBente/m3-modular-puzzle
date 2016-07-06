@@ -36,6 +36,24 @@
 #define TIME_MIN 60
 #define TIME_MAX 300
 
+// Flags indicating acknowledgement or the lack thereof
+#define ACK  1
+#define NACK 0
+#define BUSY 0xFF // Module can't respond to the query right now
+
+// Maximal number of modules expected
+#define NUM_MODULES 6
+
+// Values for communication protocol
+#define I2C_RESERVED  0 // Not yet in use
+#define I2C_RESET     1 // Tell modules to reinitialize
+#define I2C_GET_STATE 2 // Tell modules to prepare informations about their state
+#define I2C_END       3 // Tell modules, the game has ended
+
+// Highest and lowest possible I2C addresses
+#define MIN_I2C_ADDR 8
+#define MAX_I2C_ADDR 127
+
 // Enum that keeps track of the current game state
 typedef enum {
   GS_RESET,   // Reinitialize game
@@ -67,8 +85,11 @@ int ms = 0;
 // Maximal number of mistakes before Game Over is triggered
 int tries = 0;
 
-// Array of up to 6 module addresses. A empty module slot gets the address -1
-int modules[] = {-1, -1, -1, -1, -1, -1};
+// Array of up to 6 module addresses. A empty module slot gets the address 0
+int modules[NUM_MODULES] = {0};
+
+// The number of modules found 
+char modules_found; 
 
 // Resets the game to some initial state without having to reboot the mC
 void reset_game() 
@@ -77,6 +98,7 @@ void reset_game()
   timer = 0;
   ms = 0;
   time_remaining = 0;
+  modules_found = 0;
   
   // Switch of indicator LED's for now
   digitalWrite(TRY_1_LED, LOW);
@@ -145,6 +167,33 @@ void update_try_leds()
   digitalWrite(TRY_3_LED, bitRead(tries,2));
 }
 
+// End all non-solved modules
+void shutdown_modules()
+{
+  char i;
+  for (i = 0; i < NUM_MODULES; i++)
+  {
+    if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR) 
+    {
+      Wire.beginTransmission(modules[i]);
+      Wire.write(I2C_END);
+      Wire.endTransmission();
+
+      char c;
+      
+      do {
+        Wire.requestFrom(modules[i], 1);
+
+        while (Wire.available()) 
+        {
+          c = Wire.read();
+        }
+        //if (c == NACK) doSomething(); // Error handling
+      } while (c == BUSY);
+    }
+  }
+}
+
 // Executed if the button was just pressed
 void onButtonPress() {}
 
@@ -159,9 +208,9 @@ void onButtonRelease()
       game_state = GS_STARTUP;
       break;
     case GS_WON:
-      game_state = GS_RESET;
     case GS_LOST:
       game_state = GS_RESET; 
+      shutdown_modules();
       break;
   }
 }
@@ -231,29 +280,90 @@ void init_modules()
   
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
-  char modules_found = 0; // for indexing the modules-array
 
   char res;
-  for (i = 8; i < 128; i++) 
+  for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++) 
   {
     Wire.beginTransmission(i);
-      Wire.write(1);
+      Wire.write(I2C_RESET);
       Wire.write(random_value);
     res = Wire.endTransmission();
 
-    if (res == 0) // If ACK was received, save module address
+    if (res == 0) // successful connection
     {
       modules[modules_found] = i;
       modules_found++;
     }
 
-    if (modules_found == 6) break;
+    if (modules_found == NUM_MODULES) break;
   }
+
+  // Check if all modules are ready
+  for (i = 0; i < modules_found; i++) 
+  {
+    char c;
+
+    do {
+      Wire.requestFrom(modules[i], 1);
+      
+      while (Wire.available())
+      { 
+        c = Wire.read();
+      }
+      // if (c == NACK) doSomething(); 
+    } while (c == BUSY); // Request data untill module is ready 
+  }
+}
+
+// Defines for possible return values of a module
+#define IDLE_STATE     0
+#define FAIL           1
+#define SOLVE          2
+#define INTERNAL_ERROR 3
+
+void handle_modules()
+{
+    // Loop through modules and request information about their state
+    unsigned char i;
+    char c;
+    
+    for (i = 0; i < NUM_MODULES; i++)
+    {
+      if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR)
+      {
+        Wire.beginTransmission(modules[i]);
+        Wire.write(I2C_GET_STATE);
+        Wire.endTransmission();
+        
+        Wire.requestFrom(modules[i], 1);
+        
+        while (Wire.available())
+        {
+          c = Wire.read();
+        }
+    
+        switch (c) 
+        {
+          case IDLE_STATE:
+            break;
+          case FAIL:
+            lose_try();
+            break;
+          case SOLVE:
+            modules_found--; // Disconnect module
+            break;
+          case INTERNAL_ERROR:
+            // Error handling goes here
+            break;
+        }
+      }
+    }
 }
 
 void loop()
 {
   handle_button();
+  
   switch (game_state) {
     case GS_SETUP:
       time_remaining = poti_to_time(analogRead(POT_PIN));
@@ -268,8 +378,11 @@ void loop()
       game_state = GS_ONGOING;
     case GS_ONGOING:
       handle_time();
+      handle_modules();
 
       if (time_remaining <= 0) game_state = GS_LOST;
+      if (modules_found == 0) game_state = GS_WON;
+      
       break;
     case GS_LOST:
       // Notify player of his loss
