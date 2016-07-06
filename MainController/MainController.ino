@@ -3,6 +3,7 @@
 */
 
 #include <Servo.h>
+#include <Wire.h>
 
 #define DEBUG // Debug build
 
@@ -66,6 +67,9 @@ int ms = 0;
 // Maximal number of mistakes before Game Over is triggered
 int tries = 0;
 
+// Array of up to 6 module addresses. A empty module slot gets the address -1
+int modules[] = {-1, -1, -1, -1, -1, -1};
+
 // Resets the game to some initial state without having to reboot the mC
 void reset_game() 
 {
@@ -73,7 +77,7 @@ void reset_game()
   timer = 0;
   ms = 0;
   time_remaining = 0;
-  
+
   // Switch of indicator LED's for now
   digitalWrite(TRY_1_LED, LOW);
   digitalWrite(TRY_2_LED, LOW);
@@ -98,6 +102,9 @@ void setup()
   pinMode(TRY_3_LED, OUTPUT);
   
   needle_servo.attach(SERVO_PIN);
+
+  // Initialize I2C connection and join bus as master
+  Wire.begin();
 
   reset_game();
 }
