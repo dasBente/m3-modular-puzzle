@@ -150,7 +150,7 @@ void setup_tries()
 // Reduces number of tries by 1
 void lose_try() 
 {
-  tries>>1;
+  tries = tries >> 1;
   update_try_leds();
 
   #ifdef DEBUG 
