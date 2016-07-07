@@ -173,37 +173,36 @@ void update_try_leds()
   digitalWrite(TRY_3_LED, bitRead(tries,2));
 }
 
+void shutdown_module(int addr) 
+{
+  Wire.beginTransmission(addr);
+  Wire.write(I2C_END);
+  Wire.endTransmission();
+
+  #ifdef DEBUG
+    Serial.print("Shutdown sent to ");
+    Serial.print(modules[i]);
+    Serial.print("\n");
+  #endif
+
+  char c;
+      
+  do {
+    Wire.requestFrom(addr, 1);
+
+    while (Wire.available()) 
+    {
+      c = Wire.read();
+    }
+    //if (c == NACK) doSomething(); // Error handling (Should not happen!)
+  } while (c == BUSY);
+}
+
 // End all non-solved modules
 void shutdown_modules()
 {
   char i;
-  for (i = 0; i < NUM_MODULES; i++)
-  {
-    if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR) 
-    {
-      Wire.beginTransmission(modules[i]);
-      Wire.write(I2C_END);
-      Wire.endTransmission();
-
-      char c;
-
-      #ifdef DEBUG
-        Serial.print("Shutdown sent to ");
-        Serial.print(modules[i]);
-        Serial.print("\n");
-      #endif
-      
-      do {
-        Wire.requestFrom(modules[i], 1);
-
-        while (Wire.available()) 
-        {
-          c = Wire.read();
-        }
-        //if (c == NACK) doSomething(); // Error handling
-      } while (c == BUSY);
-    }
-  }
+  for (i = 0; i < NUM_MODULES; i++) shutdown_module(modules[i]);
 }
 
 // Executed if the button was just pressed
@@ -222,7 +221,6 @@ void onButtonRelease()
     case GS_WON:
     case GS_LOST:
       game_state = GS_RESET; 
-      shutdown_modules();
       break;
   }
 }
@@ -384,7 +382,7 @@ void handle_modules()
             modules_found--; // Disconnect module
             break;
           case INTERNAL_ERROR:
-            // Error handling goes here
+            shutdown_module(modules[i]);
             break;
         }
       }
@@ -411,8 +409,16 @@ void loop()
       handle_time();
       handle_modules();
 
-      if (time_remaining <= 0) game_state = GS_LOST;
-      if (modules_found == 0) game_state = GS_WON;
+      if (time_remaining <= 0) 
+      {
+        shutdown_modules();
+        game_state = GS_LOST;
+      }
+      if (modules_found == 0) 
+      {
+        shutdown_modules();
+        game_state = GS_WON;
+      }
       
       break;
     case GS_LOST:
