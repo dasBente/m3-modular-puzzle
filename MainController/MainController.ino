@@ -152,6 +152,12 @@ void lose_try()
 {
   tries>>1;
   update_try_leds();
+
+  #ifdef DEBUG 
+    Serial.print("Remaining tries: ");
+    Serial.print(tries, HEX);
+    Serial.print("\n");
+  #endif
   
   if (tries == 0) 
   {
@@ -180,6 +186,12 @@ void shutdown_modules()
       Wire.endTransmission();
 
       char c;
+
+      #ifdef DEBUG
+        Serial.print("Shutdown sent to ");
+        Serial.print(modules[i]);
+        Serial.print("\n");
+      #endif
       
       do {
         Wire.requestFrom(modules[i], 1);
@@ -293,6 +305,12 @@ void init_modules()
     {
       modules[modules_found] = i;
       modules_found++;
+
+      #ifdef DEBUG
+        Serial.print("Module found at ");
+        Serial.print(modules[modules_found - 1]);
+        Serial.print("\n");
+      #endif
     }
 
     if (modules_found == NUM_MODULES) break;
@@ -341,12 +359,25 @@ void handle_modules()
         {
           c = Wire.read();
         }
-    
+
+        #ifdef DEBUG
+          if (c == 1 || c == 2 || c == 3)
+          {
+            Serial.print("Received: ");
+            Serial.print((int)(c));
+            Serial.print("\n");
+          }
+        #endif
+        
         switch (c) 
         {
           case IDLE_STATE:
             break;
           case FAIL:
+            #ifdef DEBUG
+              Serial.print("Am I called?\n");
+            #endif
+            
             lose_try();
             break;
           case SOLVE:
