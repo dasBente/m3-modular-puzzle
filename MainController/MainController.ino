@@ -181,7 +181,7 @@ void shutdown_module(int addr)
 
   #ifdef DEBUG
     Serial.print("Shutdown sent to ");
-    Serial.print(modules[i]);
+    Serial.print(addr);
     Serial.print("\n");
   #endif
 
