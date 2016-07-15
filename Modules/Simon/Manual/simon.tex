@@ -1,0 +1,101 @@
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,  amssymb}
+\usepackage[margin=3cm]{geometry}
+
+\newcommand{\perm}[4]{
+	\bigl(\begin{smallmatrix}
+		\mbox{R} & \mbox{B} & \mbox{G} & \mbox{Y} \\
+		\mbox{#1}&\mbox{#2}&\mbox{#3}&\mbox{#4}
+	\end{smallmatrix}\bigr)
+}
+
+\usepackage{relsize}
+\usepackage{color}
+\newcommand{\ledoff}{$\mathlarger{\mathlarger{\mathlarger{\mathlarger\circ}}}$}
+\newcommand{\ledon}{$\textcolor{red}{\mathlarger{\mathlarger{\mathlarger{\mathlarger{\bullet}}}}}$}
+
+\begin{document}
+\pagenumbering{gobble}
+\section*{Simon}
+This module is inspired by the popular travel game \textit{Simon}\footnote{See: https://en.wikipedia.org/wiki/Simon\_(game)}$^,$\footnote{Which is itself named after the childrens game \textit{Simon says} and inspired by an Atari arcade game by the name of \textit{Touch Me}}. In the standard version of \textit{Simon}, the player has to memorize a sequence of flashing 
+buttons and press said buttons on the game in the presented order. This version of Simon is similar as the player has to press the buttons on the module according to the sequence of the 
+colored LEDs flashing near the buttons. However, in this version, the button corresponding to a LED is determined by special rules explained below.
+
+\subsection*{Solve the module}
+\subsubsection*{Determine the permutations}
+\[
+\mbox{\textbf{HINT} It can be helpful, to write down notes for this modules solution}
+\]
+For every one of $\sigma_1$, $\sigma_2$, $\sigma_3$ and $\sigma_4$ choose one of the permutations below. The choice of permutation is dependent on the sequence of eight LEDs on the
+controller. $\sigma_1$ corresponds to the leftmost pair of LEDs, $\sigma_2$ to the pair on the right of that and so on. The correct column is determined by which of the pairs LEDs is on (\ledon) or off (\ledoff).
+\begin{table}[h]
+\centering
+\def\arraystretch{2}
+\begin{tabular}{cc|c c c c }
+\multicolumn{2}{l |}{LEDs} & \ledoff \ledoff & \ledoff \ledoff & \ledoff \ledoff & \ledoff \ledoff\\
+\hline
+& & $\sigma_1$ & $\sigma_2$ & $\sigma_3$ & $\sigma_4$ \\
+\ledoff & \ledoff & $\perm{R}{G}{Y}{B}$ & $\perm{B}{G}{Y}{R}$ & $\perm{G}{Y}{B}{R}$ & $\perm{Y}{R}{G}{B}$ \\
+\ledoff & \ledon & $\perm{Y}{B}{G}{R}$ & $\perm{R}{Y}{G}{B}$ & $\perm{B}{R}{G}{Y}$ & $\perm{G}{R}{B}{Y}$ \\
+\ledon & \ledoff & $\perm{G}{Y}{B}{R}$ & $\perm{Y}{G}{B}{R}$ & $\perm{R}{B}{Y}{G}$ & $\perm{B}{G}{R}{Y}$ \\
+\ledon & \ledon & $\perm{B}{Y}{G}{R}$ & $\perm{G}{R}{B}{Y}$ & $\perm{Y}{B}{R}{G}$ & $\perm{R}{G}{B}{Y}$
+\end{tabular}
+\end{table}
+
+\noindent
+Now you need to determine in which order the permutations are applied to each other:
+
+\begin{table}[h]
+\centering\def\arraystretch{1.5}
+\begin{tabular}{l| r}
+Number of glowing LEDs & Order of permutations \\
+\hline
+0 & $\sigma_1\circ\sigma_2\circ\sigma_3\circ\sigma_4$ \\
+1 & $\sigma_2\circ\sigma_1\circ\sigma_3\circ\sigma_4$ \\
+2 & $\sigma_3\circ\sigma_2\circ\sigma_1\circ\sigma_4$ \\
+3 & $\sigma_4\circ\sigma_3\circ\sigma_2\circ\sigma_1$ \\
+4 & $\sigma_1\circ\sigma_4\circ\sigma_2\circ\sigma_3$ \\
+5 & $\sigma_2\circ\sigma_4\circ\sigma_1\circ\sigma_3$ \\
+6 & $\sigma_3\circ\sigma_1\circ\sigma_2\circ\sigma_4$ \\
+7 & $\sigma_4\circ\sigma_2\circ\sigma_1\circ\sigma_3$ \\
+8 & $\sigma_1\circ\sigma_3\circ\sigma_4\circ\sigma_2$ \\
+\end{tabular}
+\end{table}
+\noindent
+If you have determined the value for  $\sigma_1$, $\sigma_2$, $\sigma_3$ and $\sigma_4$ and the order in which they are applied to each other, proceed to the next page.
+\newpage
+\subsubsection*{Compose the permutations}
+A permutation basically substitutes elements of some set with other elements of the same set. This means for our set of colored buttons \textbf{R, G, B, Y} (red, green, blue, yellow), 
+a permutation
+\[
+	\sigma = \perm{G}{R}{B}{Y}
+\]
+would mean that \textbf{green and red} as well as \textbf{blue and yellow} have been switched. For this module, this means that when the \textbf{blue} LED flashes, the \textbf{yellow}
+button has to be pressed and vice versa. Also, permutations can be composed, indicated by the $\circ$-Operator\footnote{You can also omit the operator, kind of like a $\cdot$-Operator in multiplication} and the resulting permutation can be composed again. Composition is resolved starting from the rightmost permutation and then going to the left. Take some permutations
+\[
+	\sigma = \perm{G}{R}{B}{Y},\quad \pi = \perm{R}{Y}{B}{G}, \quad \rho  =\perm{Y}{B}{G}{R}
+\]
+You can determine the composite of the permutation $\sigma\circ\pi\circ\rho$ like this:
+\[
+	P=\sigma\circ\pi\circ\rho=\perm{G}{R}{B}{Y}\bigl[\perm{R}{Y}{B}{G}\perm{Y}{B}{G}{R}\bigr]=\perm{G}{R}{B}{Y}\underbrace{\perm{G}{Y}{B}{R}}_{\pi\circ\rho}=
+		\perm{B}{Y}{R}{G}
+\]
+For these permutations, a \textbf{red} LED flash would correspond to a \textbf{blue} button press etc. You can simply start with the rightmost permutation and substitute the values it maps 
+to (the second row of values) according to the substitutions of the left neighbour. It can be helpful to write the permutations under each other:
+\begin{table}[h]
+\centering
+\def\arraystretch{2}
+ \begin{tabular}{cccc}
+ R & B & G & Y \\
+ Y & B & G & R \\
+ G & Y & B & R \\
+ B & Y & R & G
+ \end{tabular}
+ \end{table}
+
+\noindent
+The two upper rows correspond to $\rho$. The top and third row are the resulting permutation of $\pi\circ\rho$ and the top and bottom row are the resulting permutation of $\sigma\circ\pi\circ\rho$. 
+
+\end{document}
