@@ -19,6 +19,8 @@
 
 #define I2C_ADDR 10 
 
+#define DEBUG
+
 // keeps track of how many iterations of the permutation still have to be solved
 int to_solve;
 
@@ -82,6 +84,10 @@ void reset()
   input_started = false;
   
   game_state = GS_STOPPED;
+
+  #ifdef DEBUG
+    Serial.println("Game reset!");
+  #endif
 }
 
 // Updates the state of the Solution-indicator leds
@@ -143,6 +149,10 @@ void start_timer()
 
 byte init_game(byte random_byte) 
 {
+  #ifdef DEBUG
+    Serial.print("Random Nr.: ");
+    Serial.println(random_byte);
+  #endif
   
   // Determine the order in which the permutations are composed
   char i, count = 0;
@@ -166,6 +176,9 @@ byte init_game(byte random_byte)
 
   start_timer();
 
+  #ifdef DEBUG
+    Serial.print("Game initialized and ready to start!");
+  #endif
   
   return ACK;
 }
@@ -189,6 +202,9 @@ void receive_event(int num_bytes)
       i2c_answer = NACK;
       break;
     case I2C_GAME_START:
+     // #ifdef DEBUG
+       // Serial.println("Got message to start game!");
+     // #endif
       i2c_answer = init_game(msg_buffer[1]);
       game_state = GS_RUNNING;
       break;
@@ -202,6 +218,9 @@ void receive_event(int num_bytes)
       else i2c_answer = GAME_INTERNAL_ERROR;
       break;
     case I2C_GAME_OVER:
+      #ifdef DEBUG
+        Serial.println("Got message to end Game!");
+      #endif
       reset();
       i2c_answer = ACK;
       break;
@@ -213,6 +232,9 @@ void resume_game()
   game_state = GS_RUNNING;
   digitalWrite(FAIL_LED, LOW);
 
+  #ifdef DEBUG
+    Serial.println("Game is resumed");
+  #endif
 }
 
 // Reaction of this module if information was requested
@@ -249,6 +271,13 @@ void setup()
   Wire.onRequest(request_event);
 
   randomSeed(analogRead(RANDOM_PIN));
+
+  #ifdef DEBUG
+    Serial.begin(9600);
+    delay(20);
+    Serial.print("Serial initialized!\n");
+  #endif
+  
   reset();
 }
 
