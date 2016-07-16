@@ -45,6 +45,9 @@ void reset()
   digitalWrite(Y_LED_PIN, LOW);
   digitalWrite(G_LED_PIN, LOW);
   digitalWrite(B_LED_PIN, LOW);
+  
+  digitalWrite(SOLVED_ALL_LED, LOW);
+  digitalWrite(FAIL_LED, LOW);
 
   to_solve = 0;
   update_to_solve();
