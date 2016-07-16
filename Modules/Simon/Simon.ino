@@ -1,3 +1,4 @@
+#include <Wire.h>
 
 #define R_BTN_PIN 12
 #define R_LED_PIN 13
@@ -16,6 +17,12 @@
 
 // keeps track of how many iterations of the permutation still have to be solved
 int to_solve;
+
+// Answer to be send to the controller
+byte i2cAnswer = 0xff;
+
+// Seed received by controller for randomization
+byte randomByte;
 
 // Resets module state into idle mode
 void reset() 
@@ -53,6 +60,7 @@ void setup()
   pinMode(SOVLED_1_PIN, OUTPUT);
   pinMode(SOLVED_2_PIN, OUTPUT);
   pinMode(SOLVED_2_PIN, OUTPUT);
+  Wire.begin(I2C_ADDR);
 
   reset();
 }
