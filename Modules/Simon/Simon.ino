@@ -45,16 +45,24 @@ typedef enum {
 #define B 2
 #define Y 3
 
-#define PERM(W,X,Y,Z) (((byte)(W)<<6)&&((byte)(X)<<4)&&((byte)(Y)<<2)&&((byte)(Z)))
+#define PERM(W,X,Y,Z) (((byte)(W)<<6) | ((byte)(X)<<4) | ((byte)(Y)<<2) | ((byte)(Z)))
 
-const int sigma1[] = {PERM(R,G,Y,B), PERM(Y,B,G,R), PERM(G,Y,B,R), PERM(B,Y,G,R)};
-const int sigma2[] = {PERM(B,G,Y,R), PERM(R,Y,G,B), PERM(Y,G,B,R), PERM(G,B,R,Y)};
-const int sigma3[] = {PERM(G,Y,B,R), PERM(B,R,G,Y), PERM(R,B,Y,G), PERM(Y,B,R,G)};
-const int sigma4[] = {PERM(Y,R,G,B), PERM(G,R,B,Y), PERM(B,G,R,Y), PERM(R,G,B,Y)};
+#define NUM_PERMUTATIONS 4
 
-const int comp[] = {PERM(0,1,2,3), PERM(1,0,2,3), PERM(2,1,0,3), PERM(3,2,1,0),
-                    PERM(0,3,1,2), PERM(1,3,0,2), PERM(2,0,1,3), PERM(3,1,0,2),
-                    PERM(0,2,3,1)};
+const int sigma[][NUM_PERMUTATIONS] = 
+  {{PERM(R,G,Y,B), PERM(Y,B,G,R), PERM(G,Y,B,R), PERM(B,Y,G,R)},
+   {PERM(B,G,Y,R), PERM(R,Y,G,B), PERM(Y,G,B,R), PERM(G,B,R,Y)},
+   {PERM(G,Y,B,R), PERM(B,R,G,Y), PERM(R,B,Y,G), PERM(Y,B,R,G)},
+   {PERM(Y,R,G,B), PERM(G,R,B,Y), PERM(B,G,R,Y), PERM(R,G,B,Y)}};
+
+const int comp[] = 
+  {PERM(0,1,2,3), PERM(1,0,2,3), PERM(2,1,0,3), PERM(3,2,1,0),
+   PERM(0,3,1,2), PERM(1,3,0,2), PERM(2,0,1,3), PERM(3,1,0,2),
+   PERM(0,2,3,1)};
+
+#define BTN_NONE 42
+
+
 
 // Resets module state into idle mode
 void reset() 
