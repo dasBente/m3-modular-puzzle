@@ -58,9 +58,9 @@ void reset()
 // Updates the state of the Solution-indicator leds
 void update_to_solve() 
 {
-  digitalWrite(SOLVED_1_PIN, bitRead(to_solve, 0));
-  digitalWrite(SOLVED_2_PIN, bitRead(to_solve, 1));
-  digitalWrite(SOLVED_3_PIN, bitRead(to_solve, 2));
+  digitalWrite(SOLVED_1_LED, bitRead(to_solve, 0));
+  digitalWrite(SOLVED_2_LED, bitRead(to_solve, 1));
+  digitalWrite(SOLVED_3_LED, bitRead(to_solve, 2));
 }
 
 void setup()
@@ -76,9 +76,10 @@ void setup()
   pinMode(G_LED_PIN, OUTPUT);
   pinMode(B_LED_PIN, OUTPUT);
 
-  pinMode(SOVLED_1_PIN, OUTPUT);
-  pinMode(SOLVED_2_PIN, OUTPUT);
-  pinMode(SOLVED_2_PIN, OUTPUT);
+  pinMode(SOLVED_1_LED, OUTPUT);
+  pinMode(SOLVED_2_LED, OUTPUT);
+  pinMode(SOLVED_2_LED, OUTPUT);
+
   Wire.begin(I2C_ADDR);
 
   reset();
