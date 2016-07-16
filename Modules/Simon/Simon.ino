@@ -26,9 +26,6 @@ int to_solve;
 // Answer to be send to the controller
 byte i2c_answer = BUSY;
 
-// Seed received by controller for randomization
-byte randomByte;
-
 byte game_state;
 
 typedef enum {
