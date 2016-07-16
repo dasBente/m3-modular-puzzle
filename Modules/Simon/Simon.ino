@@ -22,6 +22,7 @@
 // keeps track of how many iterations of the permutation still have to be solved
 int to_solve;
 
+#define BUSY 0xff // Byte to be send if module is busy and has no answer to provide
 // Answer to be send to the controller
 byte i2cAnswer = 0xff;
 
@@ -79,6 +80,22 @@ void update_to_solve()
   digitalWrite(SOLVED_2_LED, bitRead(to_solve, 1));
   digitalWrite(SOLVED_3_LED, bitRead(to_solve, 2));
 }
+
+// Defines for different requests according to the MC-Communication Protocol
+#define I2C_RESERVED   0
+#define I2C_GAME_START 1
+#define I2C_GET_STATE  2
+#define I2C_GAME_OVER  3
+
+// Defines for module answers (on any request)
+#define ACK  1
+#define NACK 0
+
+// Defines for module answers (on state request)
+#define GAME_IDLE           0 
+#define GAME_FAIL           1 
+#define GAME_SOLVED         2
+#define GAME_INTERNAL_ERROR 3
 
 void setup()
 {
