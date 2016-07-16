@@ -28,6 +28,16 @@ byte i2cAnswer = 0xff;
 // Seed received by controller for randomization
 byte randomByte;
 
+byte game_state;
+
+typedef enum {
+  GS_STOPPED, // Module is idle and waiting for start of a game
+  GS_RUNNING, // The module is currently running
+  GS_SOLVED, // Module has been succesfully solved
+  GS_FAILED, // A fail has been triggered
+  GS_ERROR // Module suffered from internal error
+} GameState;
+
 // Resets module state into idle mode
 void reset() 
 {
@@ -38,6 +48,8 @@ void reset()
 
   to_solve = 0;
   update_to_solve();
+
+  game_state = GS_STOPPED;
 }
 
 // Updates the state of the Solution-indicator leds
