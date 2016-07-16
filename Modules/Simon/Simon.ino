@@ -105,6 +105,54 @@ void update_to_solve()
 #define GAME_SOLVED         2
 #define GAME_INTERNAL_ERROR 3
 
+// Reaction of this module if some message was received
+void receive_event(int num_bytes)
+{
+   byte msg_buffer[num_bytes];
+   int i;
+   for (i = 0; i < num_bytes; i++) msg_buffer[i] = (byte)(Wire.read());
+
+   switch (msg_buffer[0])
+   {
+    case I2C_RESERVED:
+      i2c_answer = NACK;
+      break;
+    case I2C_GAME_START:
+      i2c_answer = init_game(msg_buffer[1]);
+      game_state = GS_RUNNING;
+      break;
+    case I2C_GET_STATE:
+      if (game_state == GS_RUNNING || game_state == GS_STOPPED)
+        i2c_answer = GAME_IDLE;
+      else if (game_state == GS_FAILED)
+        i2c_answer = GAME_FAIL;
+      else if (game_state == GS_SOLVED)
+        i2c_answer = GAME_SOLVED;
+      else i2c_answer = GAME_INTERNAL_ERROR;
+      break;
+    case I2C_GAME_OVER:
+      reset();
+      i2c_answer = ACK;
+      break;
+   }
+}
+
+void resume_game()
+{
+  game_state = GS_RUNNING;
+  digitalWrite(FAIL_LED, LOW);
+
+}
+
+// Reaction of this module if information was requested
+void request_event()
+{
+  Wire.write(i2c_answer); 
+  i2c_answer = BUSY;
+
+  if (game_state == GS_FAILED) resume_game();
+}
+
 void setup()
 {
   // Initialize buttons and leds
@@ -123,6 +171,8 @@ void setup()
   pinMode(SOLVED_2_LED, OUTPUT);
 
   Wire.begin(I2C_ADDR);
+  Wire.onReceive(receive_event);
+  Wire.onRequest(request_event);
 
   reset();
 }
