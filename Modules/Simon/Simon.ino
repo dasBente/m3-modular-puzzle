@@ -14,8 +14,8 @@
 #define SOLVED_2_LED A1
 #define SOLVED_3_LED A0
 
-#define SOLVED_ALL_LED 4
-#define FAIL_LED       3
+#define SOLVED_ALL_LED 3
+#define FAIL_LED       2
 
 #define I2C_ADDR 10 
 
