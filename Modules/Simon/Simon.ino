@@ -59,7 +59,9 @@ const int comp[] =
 
 #define BTN_NONE 42
 
+byte pressed_color = BTN_NONE;
 
+bool input_started; // Has the player started to input the sequence?
 
 // Resets module state into idle mode
 void reset() 
