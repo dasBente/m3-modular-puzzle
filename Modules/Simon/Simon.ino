@@ -49,7 +49,7 @@ void reset()
   digitalWrite(SOLVED_ALL_LED, LOW);
   digitalWrite(FAIL_LED, LOW);
 
-  to_solve = 0;
+  to_solve = 0b0;
   update_to_solve();
 
   game_state = GS_STOPPED;
