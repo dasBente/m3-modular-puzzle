@@ -1,9 +1,6 @@
 \documentclass[a4paper, 12pt]{article}
 \usepackage[utf8]{inputenc}
-\usepackage[ngerman]{babel} %%comment?
 \usepackage{geometry}
-\usepackage{amssymb}
-\usepackage{amsmath}
 
 \geometry{a4paper, left=15mm, right=20mm, top=2cm, bottom=2cm}
 \setlength{\parskip}{1em}
@@ -14,7 +11,7 @@
 
 \section*{Controller-Module communication protocol}
 
-The controller communicates with the modules using $I^2C/TWI$. The controller is the master (without address) and the modules are the slaves (address space begins at 8 and ends at 127). Each modules must have its own unique address.
+The controller communicates with the modules using $I^2C/TWI$. The controller is the master (without address) and the modules are the slaves (address space begins at 8 and ends at 127). Each module must have its own unique address.
 
 \subsection*{General procedure}
 
@@ -31,7 +28,7 @@ not used (yet).
 %debug or ping?
 
 \paragraph*{1 - game start / reset.}
-The game starts, the module should reset and initialize. The slave answers with 0 - failed or 1 - acknowledgement.
+The game starts, the module should reset and initialize. One additional byte is a random number for variance in the game. The slave answers with 0 - failed or 1 - acknowledgement.
 
 \paragraph*{2 - get information about game status.}
 The module should tell if one of these events happened:
@@ -42,6 +39,7 @@ The module should tell if one of these events happened:
 \item 2 - the module was solved and does not need to be asked again
 \item 3 - internal module error (should not happen)
 \end{itemize}
+If the module sends 255 (0xFF), the answer were not ready yet. The controller could wait a time and request one answer byte again.
 
 \paragraph*{3 - game ended.}
 The game ended, the module should not accept solutions or fails anymore. The slave answers with 0 - failed or 1 - acknowledgement.

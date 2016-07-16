@@ -1,2 +1,2 @@
 # m3-modular-puzzle
-Repository für die Entwicklung eines modularen Puzzles für das M3 Projektpraktikum
+Repository for the implementation of a modular puzzle system as a M3 project.
