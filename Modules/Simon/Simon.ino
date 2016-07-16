@@ -24,7 +24,7 @@ int to_solve;
 
 #define BUSY 0xff // Byte to be send if module is busy and has no answer to provide
 // Answer to be send to the controller
-byte i2cAnswer = 0xff;
+byte i2c_answer = BUSY;
 
 // Seed received by controller for randomization
 byte randomByte;
