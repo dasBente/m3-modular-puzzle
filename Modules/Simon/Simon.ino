@@ -1,19 +1,23 @@
 #include <Wire.h>
 
-#define R_BTN_PIN 12
-#define R_LED_PIN 13
-#define Y_BTN_PIN 10
-#define Y_LED_PIN 11
-#define G_BTN_PIN 8
-#define G_LED_PIN 9
-#define B_BTN_PIN 6
-#define B_LED_PIN 7
+#define R_BTN_PIN 13
+#define G_BTN_PIN 12
+#define Y_BTN_PIN 11
+#define B_BTN_PIN 10
 
-#define SOLVED_1_PIN 5
-#define SOLVED_2_PIN 4
-#define SOLVED_3_PIN 3
+#define R_LED_PIN 7
+#define G_LED_PIN 6
+#define Y_LED_PIN 5
+#define B_LED_PIN 4
 
-// Maybe some controll LED to indicate, that mC has a connection to the controller?
+#define SOLVED_1_LED A2
+#define SOLVED_2_LED A1
+#define SOLVED_3_LED A0
+
+#define SOLVED_ALL_LED 4
+#define FAIL_LED       3
+
+#define I2C_ADDR 10 
 
 // keeps track of how many iterations of the permutation still have to be solved
 int to_solve;
