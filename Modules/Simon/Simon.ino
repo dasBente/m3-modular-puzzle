@@ -322,6 +322,11 @@ inline void increment_solved()
   if (to_solve == 0b111) solved();
 }
 
+// Time to wait at the end of the sequence
+#define WAIT_TIME 1000
+
+bool only_once = false; // Shold not allow for a button to be counted twice
+
 // Handles entering the sequence and checking for fail/solve (basically the game logic)
 void handle_release(byte color)
 {
