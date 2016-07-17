@@ -65,13 +65,18 @@ byte pressed_color = BTN_NONE;
 
 bool input_started; // Has the player started to input the sequence?
 
-// Resets module state into idle mode
-void reset() 
+void reset_color_LEDs()
 {
   digitalWrite(R_LED_PIN, LOW);
   digitalWrite(Y_LED_PIN, LOW);
   digitalWrite(G_LED_PIN, LOW);
   digitalWrite(B_LED_PIN, LOW);
+}
+
+// Resets module state into idle mode
+void reset() 
+{
+  reset_color_LEDs();
   
   digitalWrite(SOLVED_ALL_LED, LOW);
   digitalWrite(FAIL_LED, LOW);
@@ -214,7 +219,12 @@ void receive_event(int num_bytes)
       else if (game_state == GS_FAILED)
         i2c_answer = GAME_FAIL;
       else if (game_state == GS_SOLVED)
+      {
+        #ifdef DEBUG
+          Wire.println("Module solved!");
+        #endif
         i2c_answer = GAME_SOLVED;
+      }
       else i2c_answer = GAME_INTERNAL_ERROR;
       break;
     case I2C_GAME_OVER:
@@ -315,24 +325,43 @@ inline void increment_solved()
 // Handles entering the sequence and checking for fail/solve (basically the game logic)
 void handle_release(byte color)
 {
-  byte color_perm = permutation_of(color); 
-
-  if (color_perm == sequence[progress]) // Player pressed correct button
+  if (!only_once)
   {
-    progress++;
-
-    if (progress >= current_max)
+    only_once = true; 
+  
+    byte color_perm = permutation_of(color); 
+  
+    #ifdef DEBUG
+      Serial.println("Button released");
+      Serial.print("Progress: ");
+      Serial.println(progress);
+    #endif
+  
+    if (color_perm == sequence[progress]) // Player pressed correct button
     {
-      current_max += SEQ_INCREMENT;
-      increment_solved();
+      progress++;
+  
+      if (progress >= current_max)
+      {
+        current_max += SEQ_INCREMENT;
+        increment_solved();
+        input_started = false;
+        progress = 0;
+      }
+    } 
+    else // Player pressed wrong button
+    {
+      game_state = GS_FAILED;
+      digitalWrite(FAIL_LED, HIGH);
       input_started = false;
+  
+      progress = 0;
+      reset_color_LEDs();
     }
-  } 
-  else // Player pressed wrong button
-  {
-    game_state = GS_FAILED;
-    digitalWrite(FAIL_LED, HIGH);
-    input_started = false;
+  
+    progress_in_seq = 0;
+    wait_time = WAIT_TIME;
+    toggled = false;
   }
 }
 
@@ -394,14 +423,12 @@ void handle_buttons()
       toggle_LED_by_perm_color(pressed_color, LOW);
       pressed_color = BTN_NONE;
     }
+    only_once = false;
   }
 }
 
 // The interval in which the LEDs are toggled
 #define TOGGLE_INTERVAL 500
-
-// Time to wait at the end of the sequence
-#define WAIT_TIME 1000
 
 // Handles blinking through the sequence
 void handle_sequence()
@@ -432,9 +459,6 @@ void handle_sequence()
       }
       else 
       {
-        #ifdef DEBUG
-          Serial.println("Switch to next color!");
-        #endif 
         toggle_LED_by_color(sequence[progress_in_seq], HIGH);
       }
   
@@ -456,5 +480,7 @@ void loop()
       // If the code breaks the module, don't punish the player
       solved();
     break;
+    default:
+      break;
   }
 }
