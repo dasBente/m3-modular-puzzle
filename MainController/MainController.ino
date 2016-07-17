@@ -5,7 +5,7 @@
 #include <Servo.h>
 #include <Wire.h>
 
-#define DEBUG // Debug build
+// #define DEBUG // Debug build
 
 // Analog pin connected to the pot washer controlling the servo position
 #define POT_PIN 0
