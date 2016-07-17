@@ -49,10 +49,10 @@ typedef enum {
 #define NUM_PERMUTATIONS 4
 
 const int sigma[][NUM_PERMUTATIONS] = 
-  {{PERM(R,G,Y,B), PERM(Y,B,G,R), PERM(G,Y,B,R), PERM(B,Y,G,R)},
-   {PERM(B,G,Y,R), PERM(R,Y,G,B), PERM(Y,G,B,R), PERM(G,B,R,Y)},
-   {PERM(G,Y,B,R), PERM(B,R,G,Y), PERM(R,B,Y,G), PERM(Y,B,R,G)},
-   {PERM(Y,R,G,B), PERM(G,R,B,Y), PERM(B,G,R,Y), PERM(R,G,B,Y)}};
+  {{PERM(R,G,Y,B), PERM(Y,B,G,R), PERM(G,Y,B,R), PERM(B,Y,G,R)},  // sigma 1
+   {PERM(B,G,Y,R), PERM(R,Y,G,B), PERM(Y,G,B,R), PERM(G,B,R,Y)},  // sigma 2
+   {PERM(G,Y,B,R), PERM(B,R,G,Y), PERM(R,B,Y,G), PERM(Y,B,R,G)},  // sigma 3
+   {PERM(Y,R,G,B), PERM(G,R,B,Y), PERM(B,G,R,Y), PERM(R,G,B,Y)}}; // sigma 4
 
 const int comp[] = 
   {PERM(0,1,2,3), PERM(1,0,2,3), PERM(2,1,0,3), PERM(3,2,1,0),
