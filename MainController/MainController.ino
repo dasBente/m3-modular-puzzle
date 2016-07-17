@@ -67,9 +67,9 @@
 // Enum that keeps track of the current game state
 typedef enum {
   GS_RESET,   // Reinitialize game
-  GS_SETUP,   // allows the game master to set a time for the player to solve the game in 
+  GS_SETUP,   // allows the game master to set a time for the player to solve the game in
   GS_HOLD,    // state after setting the game time. Game starts on next button press
-  GS_STARTUP, // initializing a new game 
+  GS_STARTUP, // initializing a new game
   GS_ONGOING, // game is currently ongoing
   GS_LOST,    // the game is over, the player has lost the game
   GS_WON      // the game is over, the player has won the game
@@ -102,7 +102,7 @@ int modules[NUM_MODULES] = {0};
 char modules_found; 
 
 // Resets the game to some initial state without having to reboot the mC
-void reset_game() 
+void reset_game()
 {
   tries = 0;
   timer = 0;
@@ -142,10 +142,10 @@ void setup()
 }
 
 // Sets up the maximal number of times, the player can make a mistake
-void setup_tries() 
+void setup_tries()
 {
   // Update tries according to the time currently remaining
-  if (time_remaining <= 120) 
+  if (time_remaining <= 120)
   {
     tries = 0b001;
   } else if (time_remaining <= 240) {
@@ -158,7 +158,7 @@ void setup_tries()
 }
 
 // Reduces number of tries by 1
-void lose_try() 
+void lose_try()
 {
   tries = tries >> 1;
   update_try_leds();
@@ -176,14 +176,14 @@ void lose_try()
 }
 
 // Updates the indicator leds for tries
-void update_try_leds() 
+void update_try_leds()
 {
   digitalWrite(TRY_1_LED, bitRead(tries,0));
   digitalWrite(TRY_2_LED, bitRead(tries,1));
   digitalWrite(TRY_3_LED, bitRead(tries,2));
 }
 
-void shutdown_module(int addr) 
+void shutdown_module(int addr)
 {
   Wire.beginTransmission(addr);
   Wire.write(I2C_END);
@@ -196,11 +196,11 @@ void shutdown_module(int addr)
   #endif
 
   char c;
-      
+
   do {
     Wire.requestFrom(addr, 1);
 
-    while (Wire.available()) 
+    while (Wire.available())
     {
       c = Wire.read();
     }
@@ -219,10 +219,10 @@ void shutdown_modules()
 void onButtonPress() {}
 
 // Executed if the button was just released
-void onButtonRelease() 
+void onButtonRelease()
 {
   switch (game_state) {
-    case GS_SETUP: 
+    case GS_SETUP:
       game_state = GS_HOLD;
       break;
     case GS_HOLD:
@@ -230,7 +230,7 @@ void onButtonRelease()
       break;
     case GS_WON:
     case GS_LOST:
-      game_state = GS_RESET; 
+      game_state = GS_RESET;
       break;
   }
 }
@@ -239,13 +239,13 @@ void onButtonRelease()
 void onButtonHold() {}
 
 // Manages logic related to button. Press-Events are handled by the functions above
-void handle_button() 
+void handle_button()
 {
   button_state = digitalRead(BUTTON_PIN);
   
   if (button_state == HIGH) 
   {
-    if (!held) 
+    if (!held)
     {
       held = true;
       onButtonPress();
@@ -253,7 +253,7 @@ void handle_button()
       onButtonHold();
     }
   } else {
-    if (held) 
+    if (held)
     {
       held = false;
       onButtonRelease();
@@ -274,11 +274,11 @@ inline int poti_to_time(int val)
 }
 
 void start_timer() {
-  timer = millis(); 
+  timer = millis();
 }
 
 // Manages remaining time, decrements timer each second, updates servo accordingly
-void handle_time() 
+void handle_time()
 {
   if (timer == 0) start_timer();
 
@@ -288,7 +288,7 @@ void handle_time()
     time_remaining -= (ms - timer) / 1000;
     timer = ms; 
   }
-  
+
   needle_servo.write(constrain(time_to_servo(time_remaining), 0, TIME_MAX));
 }
 
@@ -297,16 +297,16 @@ void init_modules()
   // Generate random number
   srand(millis());
   char random_value = rand();
-  
+
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
 
   char res;
-  for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++) 
+  for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++)
   {
     Wire.beginTransmission(i);
-      Wire.write(I2C_RESET);
-      Wire.write(random_value);
+    Wire.write(I2C_RESET);
+    Wire.write(random_value);
     res = Wire.endTransmission();
 
     if (res == 0) // successful connection
@@ -314,30 +314,30 @@ void init_modules()
       modules[modules_found] = i;
       modules_found++;
 
-      #ifdef DEBUG
-        Serial.print("Module found at ");
-        Serial.print(modules[modules_found - 1]);
-        Serial.print("\n");
-      #endif
+#ifdef DEBUG
+      Serial.print("Module found at ");
+      Serial.print(modules[modules_found - 1]);
+      Serial.print("\n");
+#endif
     }
 
     if (modules_found == NUM_MODULES) break;
   }
 
   // Check if all modules are ready
-  for (i = 0; i < modules_found; i++) 
+  for (i = 0; i < modules_found; i++)
   {
     char c;
 
     do {
       Wire.requestFrom(modules[i], 1);
-      
+
       while (Wire.available())
-      { 
+      {
         c = Wire.read();
       }
-      // if (c == NACK) doSomething(); 
-    } while (c == BUSY); // Request data untill module is ready 
+      // if (c == NACK) doSomething();
+    } while (c == BUSY); // Request data untill module is ready
   }
 }
 
@@ -402,14 +402,14 @@ void handle_modules()
 void loop()
 {
   handle_button();
-  
+
   switch (game_state) {
     case GS_SETUP:
       time_remaining = poti_to_time(analogRead(POT_PIN));
       needle_servo.write(time_to_servo(time_remaining));
-      
+
       setup_tries();
-      
+
       delay(15); // Notwendig?
       break;
     case GS_STARTUP:
@@ -419,17 +419,17 @@ void loop()
       handle_time();
       handle_modules();
 
-      if (time_remaining <= 0) 
+      if (time_remaining <= 0)
       {
         shutdown_modules();
         game_state = GS_LOST;
       }
-      if (modules_found == 0) 
+      if (modules_found == 0)
       {
         shutdown_modules();
         game_state = GS_WON;
       }
-      
+
       break;
     case GS_LOST:
       // Notify player of his loss
@@ -441,13 +441,13 @@ void loop()
       reset_game();
       break;
   }
-  
-  #ifdef DEBUG
-    digitalWrite(DEBUG_LED_PIN, held);
-    if (Serial.available()) 
-    {
-      Serial.print(time_remaining);
-      Serial.print("\n");
-    }
-  #endif
+
+#ifdef DEBUG
+  digitalWrite(DEBUG_LED_PIN, held);
+  if (Serial.available())
+  {
+    Serial.print(time_remaining);
+    Serial.print("\n");
+  }
+#endif
 }
