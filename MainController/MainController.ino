@@ -14,16 +14,26 @@
 #define SERVO_PIN 9
 
 // Pin connected to the button for controlling the game "menu"
-#define BUTTON_PIN 2
+#define BUTTON_PIN 8
+
+// Pin connected to the buzzer
+#define BUZZER_PIN 10
 
 // Pin connected to indicators for tries
-#define TRY_1_LED 5
-#define TRY_2_LED 6
-#define TRY_3_LED 7
+#define TRY_1_LED 11
+#define TRY_2_LED 12
+#define TRY_3_LED A1
+
+// Register used to show random number
+#define RNG_LED_PORT PORTD
+#define RNG_LED_DDR  DDRD
+
+// Indicates that the game is on hold
+#define HOLD_LED 13
 
 // Defines and variables for the sake of debugging
 #ifdef DEBUG
-  #define DEBUG_LED_PIN 13 // Pin connected to a (onboard) LED
+#define DEBUG_LED_PIN 13 // Pin connected to a (onboard) LED
 #endif
 
 // Constants for the minimal and maximal values related to pot washer and servo
