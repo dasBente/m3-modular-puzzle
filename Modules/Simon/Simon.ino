@@ -115,7 +115,7 @@ void update_to_solve()
 byte compose(byte lhs, byte rhs)
 {
   byte res = 0, i, substitute;
-  for (i = 0; i < 4; i++) res |= (GET(lhs,GET(rhs, i))) << (2*i);
+  for (i = 0; i < 4; i++) res |= (GET(lhs, GET(rhs, i)) << (2 * (3 - i)));
   return res;
 }
 
