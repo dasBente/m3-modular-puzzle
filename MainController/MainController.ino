@@ -64,6 +64,17 @@
 #define MIN_I2C_ADDR 8
 #define MAX_I2C_ADDR 127
 
+// Value to be added to the time_multiplier on failure
+#define MULTIPLIER_INCREMENT 0.5f
+
+// Time interval in ms in which the timer advances
+#define UPDATE_INTERVAL 1000.0f
+
+// Defines for an alarm that starts just before the end of the game
+#define ALARM_THRESHOLD 30
+#define ALARM_FREQ      1000
+#define ALARM_DURATION  100
+
 // Enum that keeps track of the current game state
 typedef enum {
   GS_RESET,   // Reinitialize game
@@ -98,8 +109,20 @@ int tries = 0;
 // Array of up to 6 module addresses. A empty module slot gets the address 0
 int modules[NUM_MODULES] = {0};
 
-// The number of modules found 
-char modules_found; 
+// The number of modules found
+char modules_found;
+
+// Amount of time
+float time_multiplier;
+
+// Variables for blinking on game end;
+int blink_timer;
+bool blink_toggle;
+
+inline void set_RNG_LEDs(byte value)
+{
+  RNG_LED_PORT = value;
+}
 
 // Resets the game to some initial state without having to reboot the mC
 void reset_game()
@@ -109,11 +132,19 @@ void reset_game()
   ms = 0;
   time_remaining = 0;
   modules_found = 0;
-  
+  time_multiplier = 1.0f;
+
+  blink_toggle = false;
+
   // Switch of indicator LED's for now
   digitalWrite(TRY_1_LED, LOW);
   digitalWrite(TRY_2_LED, LOW);
   digitalWrite(TRY_3_LED, LOW);
+
+  digitalWrite(HOLD_LED, LOW);
+
+  // Shut off RNG LEDs
+  set_RNG_LEDs(0);
 
   game_state = GS_SETUP;
 }
@@ -122,17 +153,24 @@ void setup()
 {
   pinMode(BUTTON_PIN, INPUT);
 
-  #ifdef DEBUG
-    pinMode(DEBUG_LED_PIN, OUTPUT);
-    Serial.begin(9800);
-    Serial.write("Serial monitor initialized!");
-  #endif
+#ifdef DEBUG
+  pinMode(DEBUG_LED_PIN, OUTPUT);
+  Serial.begin(9800);
+  Serial.write("Serial monitor initialized!");
+#endif
 
   // Enable try LEDs
   pinMode(TRY_1_LED, OUTPUT);
   pinMode(TRY_2_LED, OUTPUT);
   pinMode(TRY_3_LED, OUTPUT);
-  
+
+  pinMode(HOLD_LED, OUTPUT);
+
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  // Initialize RNG LEDs
+  RNG_LED_DDR = 0xff;
+
   needle_servo.attach(SERVO_PIN);
 
   // Initialize I2C connection and join bus as master
@@ -157,30 +195,48 @@ void setup_tries()
   update_try_leds();
 }
 
+#define LOSE_FREQ     400
+#define LOSE_DURATION 2000
+
+inline void lose_tone()
+{
+  tone(BUZZER_PIN, LOSE_FREQ, LOSE_DURATION);
+}
+
 // Reduces number of tries by 1
 void lose_try()
 {
   tries = tries >> 1;
   update_try_leds();
 
-  #ifdef DEBUG 
-    Serial.print("Remaining tries: ");
-    Serial.print(tries, HEX);
-    Serial.print("\n");
-  #endif
-  
-  if (tries == 0) 
+#ifdef DEBUG
+  Serial.print("Remaining tries: ");
+  Serial.print(tries, HEX);
+  Serial.print("\n");
+#endif
+
+  if (tries == 0)
   {
-    game_state = GS_LOST;  
+    game_state = GS_LOST;
+    lose_tone();
+    needle_servo.write(SERVO_MAX);
+    digitalWrite(TRY_1_LED, LOW);
+    digitalWrite(TRY_2_LED, LOW);
+    digitalWrite(TRY_3_LED, LOW);
+  }
+  else
+  {
+    tone(BUZZER_PIN, 500, 500);
+    time_multiplier += MULTIPLIER_INCREMENT;
   }
 }
 
 // Updates the indicator leds for tries
 void update_try_leds()
 {
-  digitalWrite(TRY_1_LED, bitRead(tries,0));
-  digitalWrite(TRY_2_LED, bitRead(tries,1));
-  digitalWrite(TRY_3_LED, bitRead(tries,2));
+  digitalWrite(TRY_1_LED, bitRead(tries, 0));
+  digitalWrite(TRY_2_LED, bitRead(tries, 1));
+  digitalWrite(TRY_3_LED, bitRead(tries, 2));
 }
 
 void shutdown_module(int addr)
@@ -189,11 +245,11 @@ void shutdown_module(int addr)
   Wire.write(I2C_END);
   Wire.endTransmission();
 
-  #ifdef DEBUG
-    Serial.print("Shutdown sent to ");
-    Serial.print(addr);
-    Serial.print("\n");
-  #endif
+#ifdef DEBUG
+  Serial.print("Shutdown sent to ");
+  Serial.print(addr);
+  Serial.print("\n");
+#endif
 
   char c;
 
@@ -224,9 +280,11 @@ void onButtonRelease()
   switch (game_state) {
     case GS_SETUP:
       game_state = GS_HOLD;
+      digitalWrite(HOLD_LED, HIGH);
       break;
     case GS_HOLD:
       game_state = GS_STARTUP;
+      digitalWrite(HOLD_LED, LOW);
       break;
     case GS_WON:
     case GS_LOST:
@@ -242,8 +300,8 @@ void onButtonHold() {}
 void handle_button()
 {
   button_state = digitalRead(BUTTON_PIN);
-  
-  if (button_state == HIGH) 
+
+  if (button_state == HIGH)
   {
     if (!held)
     {
@@ -261,8 +319,8 @@ void handle_button()
   }
 }
 
-// Maps a value of game time to a value used by the servo 
-inline int time_to_servo(int val) 
+// Maps a value of game time to a value used by the servo
+inline int time_to_servo(int val)
 {
   return map(val, 0, TIME_MAX, SERVO_MAX, SERVO_MIN);
 }
@@ -283,10 +341,12 @@ void handle_time()
   if (timer == 0) start_timer();
 
   ms = millis();
-  if (ms - timer > 1000) 
+  if (ms - timer > (int)(UPDATE_INTERVAL / time_multiplier))
   {
-    time_remaining -= (ms - timer) / 1000;
-    timer = ms; 
+    time_remaining -= (ms - timer) / UPDATE_INTERVAL;
+    timer = ms;
+
+    if (time_remaining <= ALARM_THRESHOLD) tone(BUZZER_PIN, ALARM_FREQ, ALARM_DURATION);
   }
 
   needle_servo.write(constrain(time_to_servo(time_remaining), 0, TIME_MAX));
@@ -349,54 +409,50 @@ void init_modules()
 
 void handle_modules()
 {
-    // Loop through modules and request information about their state
-    unsigned char i;
-    char c;
-    
-    for (i = 0; i < NUM_MODULES; i++)
-    {
-      if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR)
-      {
-        Wire.beginTransmission(modules[i]);
-        Wire.write(I2C_GET_STATE);
-        Wire.endTransmission();
-        
-        Wire.requestFrom(modules[i], 1);
-        
-        while (Wire.available())
-        {
-          c = Wire.read();
-        }
+  // Loop through modules and request information about their state
+  unsigned char i;
+  char c;
 
-        #ifdef DEBUG
-          if (c == 1 || c == 2 || c == 3)
-          {
-            Serial.print("Received: ");
-            Serial.print((int)(c));
-            Serial.print("\n");
-          }
-        #endif
-        
-        switch (c) 
-        {
-          case IDLE_STATE:
-            break;
-          case FAIL:
-            #ifdef DEBUG
-              Serial.print("Am I called?\n");
-            #endif
-            
-            lose_try();
-            break;
-          case SOLVE:
-            modules_found--; // Disconnect module
-            break;
-          case INTERNAL_ERROR:
-            shutdown_module(modules[i]);
-            break;
-        }
+  for (i = 0; i < NUM_MODULES; i++)
+  {
+    if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR)
+    {
+      Wire.beginTransmission(modules[i]);
+      Wire.write(I2C_GET_STATE);
+      Wire.endTransmission();
+
+      Wire.requestFrom(modules[i], 1);
+
+      while (Wire.available())
+      {
+        c = Wire.read();
+      }
+
+#ifdef DEBUG
+      if (c == 1 || c == 2 || c == 3)
+      {
+        Serial.print("Received: ");
+        Serial.print((int)(c));
+        Serial.print("\n");
+      }
+#endif
+
+      switch (c)
+      {
+        case IDLE_STATE:
+          break;
+        case FAIL:
+          lose_try();
+          break;
+        case SOLVE:
+          modules_found--; // Disconnect module
+          break;
+        case INTERNAL_ERROR:
+          shutdown_module(modules[i]);
+          break;
       }
     }
+  }
 }
 
 void loop()
@@ -423,11 +479,20 @@ void loop()
       {
         shutdown_modules();
         game_state = GS_LOST;
+        lose_tone();
       }
       if (modules_found == 0)
       {
         shutdown_modules();
         game_state = GS_WON;
+
+        needle_servo.write(SERVO_MIN);
+        digitalWrite(TRY_1_LED, HIGH);
+        digitalWrite(TRY_2_LED, HIGH);
+        digitalWrite(TRY_3_LED, HIGH);
+
+        blink_timer = millis();
+        blink_toggle = true;
       }
 
       break;
@@ -435,7 +500,14 @@ void loop()
       // Notify player of his loss
       break;
     case GS_WON:
-      // Notify player of his win
+      int ms = millis();
+      if (ms - blink_timer > BLINK_INTERVAL)
+      {
+        blink_timer = ms;
+        
+        set_RNG_LEDs(blink_toggle ? 0xff : 0x00);
+        blink_toggle = !blink_toggle;
+      }
       break;
     case GS_RESET:
       reset_game();
