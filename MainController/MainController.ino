@@ -151,7 +151,7 @@ void reset_game()
 
 void setup()
 {
-  pinMode(BUTTON_PIN, INPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
 #ifdef DEBUG
   pinMode(DEBUG_LED_PIN, OUTPUT);
@@ -299,9 +299,7 @@ void onButtonHold() {}
 // Manages logic related to button. Press-Events are handled by the functions above
 void handle_button()
 {
-  button_state = digitalRead(BUTTON_PIN);
-
-  if (button_state == HIGH)
+  if (digitalRead(BUTTON_PIN) == HIGH)
   {
     if (!held)
     {
@@ -455,9 +453,12 @@ void handle_modules()
   }
 }
 
+#define BLINK_INTERVAL 1000
+
 void loop()
 {
   handle_button();
+  int ms;
 
   switch (game_state) {
     case GS_SETUP:
@@ -500,7 +501,7 @@ void loop()
       // Notify player of his loss
       break;
     case GS_WON:
-      int ms = millis();
+      ms = millis();
       if (ms - blink_timer > BLINK_INTERVAL)
       {
         blink_timer = ms;
