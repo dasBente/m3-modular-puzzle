@@ -203,42 +203,6 @@ inline void lose_tone()
   tone(BUZZER_PIN, LOSE_FREQ, LOSE_DURATION);
 }
 
-// Reduces number of tries by 1
-void lose_try()
-{
-  tries = tries >> 1;
-  update_try_leds();
-
-#ifdef DEBUG
-  Serial.print("Remaining tries: ");
-  Serial.print(tries, HEX);
-  Serial.print("\n");
-#endif
-
-  if (tries == 0)
-  {
-    game_state = GS_LOST;
-    lose_tone();
-    needle_servo.write(SERVO_MAX);
-    digitalWrite(TRY_1_LED, LOW);
-    digitalWrite(TRY_2_LED, LOW);
-    digitalWrite(TRY_3_LED, LOW);
-  }
-  else
-  {
-    tone(BUZZER_PIN, 500, 500);
-    time_multiplier += MULTIPLIER_INCREMENT;
-  }
-}
-
-// Updates the indicator leds for tries
-void update_try_leds()
-{
-  digitalWrite(TRY_1_LED, bitRead(tries, 0));
-  digitalWrite(TRY_2_LED, bitRead(tries, 1));
-  digitalWrite(TRY_3_LED, bitRead(tries, 2));
-}
-
 void shutdown_module(int addr)
 {
   Wire.beginTransmission(addr);
@@ -269,6 +233,44 @@ void shutdown_modules()
 {
   char i;
   for (i = 0; i < NUM_MODULES; i++) shutdown_module(modules[i]);
+}
+
+// Reduces number of tries by 1
+void lose_try()
+{
+  tries = tries >> 1;
+  update_try_leds();
+
+#ifdef DEBUG
+  Serial.print("Remaining tries: ");
+  Serial.print(tries, HEX);
+  Serial.print("\n");
+#endif
+
+  if (tries == 0)
+  {
+    game_state = GS_LOST;
+    lose_tone();
+    needle_servo.write(SERVO_MAX);
+    digitalWrite(TRY_1_LED, LOW);
+    digitalWrite(TRY_2_LED, LOW);
+    digitalWrite(TRY_3_LED, LOW);
+
+    shutdown_modules();
+  }
+  else
+  {
+    tone(BUZZER_PIN, 500, 500);
+    time_multiplier += MULTIPLIER_INCREMENT;
+  }
+}
+
+// Updates the indicator leds for tries
+void update_try_leds()
+{
+  digitalWrite(TRY_1_LED, bitRead(tries, 0));
+  digitalWrite(TRY_2_LED, bitRead(tries, 1));
+  digitalWrite(TRY_3_LED, bitRead(tries, 2));
 }
 
 // Executed if the button was just pressed
@@ -355,6 +357,8 @@ void init_modules()
   // Generate random number
   srand(millis());
   char random_value = rand();
+
+  set_RNG_LEDs(random_value);
 
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
@@ -447,6 +451,7 @@ void handle_modules()
           break;
         case INTERNAL_ERROR:
           shutdown_module(modules[i]);
+          modules_found--; // Assume module as solved, so player is not punished by implementation error
           break;
       }
     }
