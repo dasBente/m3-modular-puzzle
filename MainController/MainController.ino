@@ -146,6 +146,12 @@ void reset_game()
   // Shut off RNG LEDs
   set_RNG_LEDs(0);
 
+  byte i;
+  for (i = 0; i < NUM_MODULES; i++)
+  {
+    modules[i] = -1;
+  }
+
   game_state = GS_SETUP;
 }
 
@@ -232,7 +238,8 @@ void shutdown_module(int addr)
 void shutdown_modules()
 {
   char i;
-  for (i = 0; i < NUM_MODULES; i++) shutdown_module(modules[i]);
+  for (i = 0; i < NUM_MODULES; i++) 
+    if (modules[i] != -1) shutdown_module(modules[i]);
 }
 
 // Reduces number of tries by 1
@@ -363,6 +370,8 @@ void init_modules()
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
 
+  byte modules_found = 0;
+  
   char res;
   for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++)
   {
@@ -415,10 +424,14 @@ void handle_modules()
   unsigned char i;
   char c;
 
+  byte still_online = 0;
+  
   for (i = 0; i < NUM_MODULES; i++)
   {
     if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR)
     {
+      still_online++;
+      
       Wire.beginTransmission(modules[i]);
       Wire.write(I2C_GET_STATE);
       Wire.endTransmission();
@@ -447,14 +460,29 @@ void handle_modules()
           lose_try();
           break;
         case SOLVE:
-          modules_found--; // Disconnect module
+          shutdown_module(modules[i]);
+          modules[i] = -1;
           break;
         case INTERNAL_ERROR:
           shutdown_module(modules[i]);
-          modules_found--; // Assume module as solved, so player is not punished by implementation error
+          modules[i] = -1;// Assume module as solved, so player is not punished by implementation error
           break;
       }
     }
+  }
+  
+  if (still_online == 0)
+  {
+    shutdown_modules();
+    game_state = GS_WON;
+
+    needle_servo.write(SERVO_MIN);
+    digitalWrite(TRY_1_LED, HIGH);
+    digitalWrite(TRY_2_LED, HIGH);
+    digitalWrite(TRY_3_LED, HIGH);
+
+    blink_timer = millis();
+    blink_toggle = true;
   }
 }
 
@@ -487,20 +515,6 @@ void loop()
         game_state = GS_LOST;
         lose_tone();
       }
-      if (modules_found == 0)
-      {
-        shutdown_modules();
-        game_state = GS_WON;
-
-        needle_servo.write(SERVO_MIN);
-        digitalWrite(TRY_1_LED, HIGH);
-        digitalWrite(TRY_2_LED, HIGH);
-        digitalWrite(TRY_3_LED, HIGH);
-
-        blink_timer = millis();
-        blink_toggle = true;
-      }
-
       break;
     case GS_LOST:
       // Notify player of his loss
