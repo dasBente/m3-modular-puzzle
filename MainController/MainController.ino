@@ -146,12 +146,18 @@ void reset_game()
   // Shut off RNG LEDs
   set_RNG_LEDs(0);
 
+  byte i;
+  for (i = 0; i < NUM_MODULES; i++)
+  {
+    modules[i] = -1;
+  }
+
   game_state = GS_SETUP;
 }
 
 void setup()
 {
-  pinMode(BUTTON_PIN, INPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 
 #ifdef DEBUG
   pinMode(DEBUG_LED_PIN, OUTPUT);
@@ -203,42 +209,6 @@ inline void lose_tone()
   tone(BUZZER_PIN, LOSE_FREQ, LOSE_DURATION);
 }
 
-// Reduces number of tries by 1
-void lose_try()
-{
-  tries = tries >> 1;
-  update_try_leds();
-
-#ifdef DEBUG
-  Serial.print("Remaining tries: ");
-  Serial.print(tries, HEX);
-  Serial.print("\n");
-#endif
-
-  if (tries == 0)
-  {
-    game_state = GS_LOST;
-    lose_tone();
-    needle_servo.write(SERVO_MAX);
-    digitalWrite(TRY_1_LED, LOW);
-    digitalWrite(TRY_2_LED, LOW);
-    digitalWrite(TRY_3_LED, LOW);
-  }
-  else
-  {
-    tone(BUZZER_PIN, 500, 500);
-    time_multiplier += MULTIPLIER_INCREMENT;
-  }
-}
-
-// Updates the indicator leds for tries
-void update_try_leds()
-{
-  digitalWrite(TRY_1_LED, bitRead(tries, 0));
-  digitalWrite(TRY_2_LED, bitRead(tries, 1));
-  digitalWrite(TRY_3_LED, bitRead(tries, 2));
-}
-
 void shutdown_module(int addr)
 {
   Wire.beginTransmission(addr);
@@ -268,7 +238,46 @@ void shutdown_module(int addr)
 void shutdown_modules()
 {
   char i;
-  for (i = 0; i < NUM_MODULES; i++) shutdown_module(modules[i]);
+  for (i = 0; i < NUM_MODULES; i++) 
+    if (modules[i] != -1) shutdown_module(modules[i]);
+}
+
+// Reduces number of tries by 1
+void lose_try()
+{
+  tries = tries >> 1;
+  update_try_leds();
+
+#ifdef DEBUG
+  Serial.print("Remaining tries: ");
+  Serial.print(tries, HEX);
+  Serial.print("\n");
+#endif
+
+  if (tries == 0)
+  {
+    game_state = GS_LOST;
+    lose_tone();
+    needle_servo.write(SERVO_MAX);
+    digitalWrite(TRY_1_LED, LOW);
+    digitalWrite(TRY_2_LED, LOW);
+    digitalWrite(TRY_3_LED, LOW);
+
+    shutdown_modules();
+  }
+  else
+  {
+    tone(BUZZER_PIN, 500, 500);
+    time_multiplier += MULTIPLIER_INCREMENT;
+  }
+}
+
+// Updates the indicator leds for tries
+void update_try_leds()
+{
+  digitalWrite(TRY_1_LED, bitRead(tries, 0));
+  digitalWrite(TRY_2_LED, bitRead(tries, 1));
+  digitalWrite(TRY_3_LED, bitRead(tries, 2));
 }
 
 // Executed if the button was just pressed
@@ -299,9 +308,7 @@ void onButtonHold() {}
 // Manages logic related to button. Press-Events are handled by the functions above
 void handle_button()
 {
-  button_state = digitalRead(BUTTON_PIN);
-
-  if (button_state == HIGH)
+  if (digitalRead(BUTTON_PIN) == HIGH)
   {
     if (!held)
     {
@@ -358,9 +365,13 @@ void init_modules()
   srand(millis());
   char random_value = rand();
 
+  set_RNG_LEDs(random_value);
+
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
 
+  byte modules_found = 0;
+  
   char res;
   for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++)
   {
@@ -413,10 +424,14 @@ void handle_modules()
   unsigned char i;
   char c;
 
+  byte still_online = 0;
+  
   for (i = 0; i < NUM_MODULES; i++)
   {
     if (modules[i] >= MIN_I2C_ADDR && modules[i] <= MAX_I2C_ADDR)
     {
+      still_online++;
+      
       Wire.beginTransmission(modules[i]);
       Wire.write(I2C_GET_STATE);
       Wire.endTransmission();
@@ -445,19 +460,38 @@ void handle_modules()
           lose_try();
           break;
         case SOLVE:
-          modules_found--; // Disconnect module
+          shutdown_module(modules[i]);
+          modules[i] = -1;
           break;
         case INTERNAL_ERROR:
           shutdown_module(modules[i]);
+          modules[i] = -1;// Assume module as solved, so player is not punished by implementation error
           break;
       }
     }
   }
+  
+  if (still_online == 0)
+  {
+    shutdown_modules();
+    game_state = GS_WON;
+
+    needle_servo.write(SERVO_MIN);
+    digitalWrite(TRY_1_LED, HIGH);
+    digitalWrite(TRY_2_LED, HIGH);
+    digitalWrite(TRY_3_LED, HIGH);
+
+    blink_timer = millis();
+    blink_toggle = true;
+  }
 }
+
+#define BLINK_INTERVAL 1000
 
 void loop()
 {
   handle_button();
+  int ms;
 
   switch (game_state) {
     case GS_SETUP:
@@ -481,26 +515,12 @@ void loop()
         game_state = GS_LOST;
         lose_tone();
       }
-      if (modules_found == 0)
-      {
-        shutdown_modules();
-        game_state = GS_WON;
-
-        needle_servo.write(SERVO_MIN);
-        digitalWrite(TRY_1_LED, HIGH);
-        digitalWrite(TRY_2_LED, HIGH);
-        digitalWrite(TRY_3_LED, HIGH);
-
-        blink_timer = millis();
-        blink_toggle = true;
-      }
-
       break;
     case GS_LOST:
       // Notify player of his loss
       break;
     case GS_WON:
-      int ms = millis();
+      ms = millis();
       if (ms - blink_timer > BLINK_INTERVAL)
       {
         blink_timer = ms;

@@ -5,7 +5,7 @@
 #define PINLEDRED 4
 #define PINADC A0
 
-#define LED_BLINK_TIME 100 //100*10ms before it switches on/off
+#define LED_BLINK_TIME 100 //100*10ms before it switches on/off (10ms by delay in loop)
 
 byte i2cAnswer=0xFF;
 byte randomByte=0;
@@ -133,7 +133,7 @@ void receiveEvent(int numBytes)
                 expectedADCvalMin=1004;
                 expectedADCvalMax=1008;
             }
-            else if (randomByte&0x04) //resistor 6 (100 kOhm)
+            else/* if (randomByte&0x04)*/ //resistor 6 (100 kOhm)
             {
                 expectedADCvalMin=1020;
                 expectedADCvalMax=1023;
