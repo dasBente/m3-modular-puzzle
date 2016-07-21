@@ -359,19 +359,25 @@ void handle_time()
   needle_servo.write(constrain(time_to_servo(time_remaining), 0, TIME_MAX));
 }
 
+// if this is received the sender is a needy module (can't be solved, has to be kept at bay until all other modules are solved)
+#define ACK_NEEDY 2
+
+// Number of modules declared as needy
+byte needy_modules;
+
 void init_modules()
 {
   // Generate random number
   srand(millis());
   char random_value = rand();
-
+  
   set_RNG_LEDs(random_value);
 
   // Find all plugged in modules and initialize them with a random value
   unsigned char i;
 
-  byte modules_found = 0;
-  
+  byte  = 0;
+  modules_found
   char res;
   for (i = MIN_I2C_ADDR; i <= MAX_I2C_ADDR; i++)
   {
@@ -395,6 +401,8 @@ void init_modules()
     if (modules_found == NUM_MODULES) break;
   }
 
+  needy_modules = 0;
+
   // Check if all modules are ready
   for (i = 0; i < modules_found; i++)
   {
@@ -409,6 +417,8 @@ void init_modules()
       }
       // if (c == NACK) doSomething();
     } while (c == BUSY); // Request data untill module is ready
+
+    if (c == NEEDY_ACK) needy_modules++;
   }
 }
 
@@ -470,8 +480,9 @@ void handle_modules()
       }
     }
   }
-  
-  if (still_online == 0)
+
+  // We can assume the player won, if only the needy modules are still active
+  if (still_online == needy_modules)
   {
     shutdown_modules();
     game_state = GS_WON;
