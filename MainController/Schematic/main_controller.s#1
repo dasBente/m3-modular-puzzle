@@ -7228,22 +7228,22 @@ This is the "EZ" version, which has limited top masking for improved ease of ass
 <instance part="GND1" gate="1" x="0" y="10.16"/>
 <instance part="GND2" gate="1" x="-35.56" y="33.02"/>
 <instance part="P+1" gate="VCC" x="0" y="86.36"/>
-<instance part="JP1" gate="G$1" x="-7.62" y="15.24"/>
-<instance part="JP2" gate="G$1" x="-12.7" y="73.66" rot="R180"/>
-<instance part="P+2" gate="VCC" x="-10.16" y="20.32"/>
-<instance part="P+3" gate="VCC" x="-25.4" y="76.2"/>
+<instance part="JP1" gate="G$1" x="-55.88" y="43.18"/>
+<instance part="JP2" gate="G$1" x="-2.54" y="73.66" rot="R180"/>
+<instance part="P+2" gate="VCC" x="-58.42" y="48.26"/>
+<instance part="P+3" gate="VCC" x="-45.72" y="76.2"/>
 <instance part="P+4" gate="VCC" x="0" y="71.12"/>
-<instance part="GND3" gate="1" x="-10.16" y="12.7"/>
-<instance part="GND4" gate="1" x="-25.4" y="63.5"/>
-<instance part="C4" gate="G$1" x="-25.4" y="68.58" rot="R180"/>
+<instance part="GND3" gate="1" x="-58.42" y="40.64"/>
+<instance part="GND4" gate="1" x="-45.72" y="63.5"/>
+<instance part="C4" gate="G$1" x="-45.72" y="68.58" rot="R180"/>
 <instance part="C5" gate="G$1" x="-22.86" y="43.18" rot="R270"/>
 <instance part="C6" gate="G$1" x="-22.86" y="48.26" rot="R270"/>
 <instance part="POT" gate="A" x="66.04" y="86.36" rot="R90"/>
 <instance part="SERVO" gate="A" x="81.28" y="20.32" rot="R90"/>
 <instance part="I2C" gate="G$1" x="58.42" y="60.96"/>
 <instance part="HELDLED" gate="G$1" x="81.28" y="76.2" rot="R90"/>
-<instance part="BUTTON" gate="G$1" x="96.52" y="35.56" rot="R90"/>
-<instance part="BUZZER" gate="G$1" x="96.52" y="25.4" rot="R90"/>
+<instance part="BUTTON" gate="G$1" x="76.2" y="30.48" rot="R90"/>
+<instance part="BUZZER" gate="G$1" x="86.36" y="30.48" rot="R90"/>
 <instance part="RNGLEDS" gate="A" x="60.96" y="43.18"/>
 <instance part="TRYLEDS" gate="A" x="76.2" y="5.08"/>
 <instance part="R1" gate="G$1" x="53.34" y="33.02"/>
@@ -7263,8 +7263,8 @@ This is the "EZ" version, which has limited top masking for improved ease of ass
 <instance part="R10" gate="G$1" x="53.34" y="20.32"/>
 <instance part="R11" gate="G$1" x="53.34" y="17.78"/>
 <instance part="GND9" gate="1" x="81.28" y="-2.54"/>
-<instance part="GND10" gate="1" x="96.52" y="30.48"/>
-<instance part="GND11" gate="1" x="96.52" y="20.32"/>
+<instance part="GND10" gate="1" x="76.2" y="25.4"/>
+<instance part="GND11" gate="1" x="86.36" y="25.4"/>
 <instance part="P+6" gate="VCC" x="81.28" y="15.24" rot="R180"/>
 <instance part="Y1" gate="G$1" x="-10.16" y="45.72" rot="R90"/>
 <instance part="R12" gate="G$1" x="53.34" y="71.12"/>
@@ -7547,13 +7547,21 @@ This is the "EZ" version, which has limited top masking for improved ease of ass
 <wire x1="60.96" y1="20.32" x2="73.66" y2="7.62" width="0.1524" layer="91"/>
 </segment>
 </net>
+<net name="N$30" class="0">
+<segment>
+<pinref part="U1" gate="G$1" pin="PB0(ICP)"/>
+<pinref part="BUTTON" gate="G$1" pin="1"/>
+<wire x1="48.26" y1="27.94" x2="73.66" y2="27.94" width="0.1524" layer="91"/>
+</segment>
+</net>
 <net name="N$31" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="PB1(OC1A)"/>
 <wire x1="48.26" y1="25.4" x2="68.58" y2="25.4" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="25.4" x2="71.12" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="22.86" x2="78.74" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="BUZZER" gate="G$1" pin="1"/>
-<wire x1="71.12" y1="22.86" x2="93.98" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="22.86" x2="83.82" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$32" class="0">
@@ -7602,18 +7610,8 @@ This is the "EZ" version, which has limited top masking for improved ease of ass
 <pinref part="U1" gate="G$1" pin="PC6(/RESET)"/>
 <pinref part="JP2" gate="G$1" pin="1"/>
 <pinref part="R13" gate="G$1" pin="1"/>
-<pinref part="R13" gate="G$1" pin="1"/>
-<wire x1="-10.16" y1="73.66" x2="0" y2="73.66" width="0.1524" layer="91"/>
 <junction x="0" y="73.66"/>
-</segment>
-</net>
-<net name="N$30" class="0">
-<segment>
-<pinref part="U1" gate="G$1" pin="PB0(ICP)"/>
-<wire x1="48.26" y1="27.94" x2="78.74" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="78.74" y1="27.94" x2="83.82" y2="33.02" width="0.1524" layer="91"/>
-<pinref part="BUTTON" gate="G$1" pin="1"/>
-<wire x1="83.82" y1="33.02" x2="93.98" y2="33.02" width="0.1524" layer="91"/>
+<pinref part="R13" gate="G$1" pin="1"/>
 </segment>
 </net>
 </nets>
